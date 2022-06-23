@@ -2,37 +2,37 @@ package main
 
 import (
 	"fmt"
-	"io"
+	"html"
 	"log"
 	"net/http"
 )
 
-type Demo int
+//type Demo int
 
-func (d Demo) ServeHTTP(w http.ResponseWriter, request *http.Request) {
-
-	io.WriteString(w, "hello shan! i am replying from server side!")
-
-}
+//func (d Demo) ServeHTTP(w http.ResponseWriter, request *http.Request) {
+//
+//	io.WriteString(w, "hello shan! i am replying from server side!")
+//
+//}
 
 func main() {
-	//http.HandleFunc("/hello", func(res http.ResponseWriter, req *http.Request) {
-	//	fmt.Fprintf(res, "hi, %q", html.EscapeString(req.URL.Path))
-	//})
-	//
+	http.HandleFunc("/hello", func(res http.ResponseWriter, req *http.Request) {
+		fmt.Fprintf(res, "hi, %q", html.EscapeString(req.URL.Path))
+	})
+
 	////fmt.Println("server started...")
 	////log.Fatal(http.ListenAndServe(":8080", nil))
 	//
 	//http.HandleFunc("/ping", func(res http.ResponseWriter, req *http.Request) {
 	//	fmt.Fprintf(res, "hello shani, %q", html.EscapeString(req.URL.Path))
 	//})
-	var d Demo
-
-	mux := http.NewServeMux()
-	mux.Handle("/shani/", d)
+	//var d Demo
+	//
+	//mux := http.NewServeMux()
+	//mux.Handle("/shani/", d)
 
 	fmt.Println("server started...")
-	log.Fatal(http.ListenAndServe(":8060", mux))
+	log.Fatal(http.ListenAndServe(":8060", nil))
 }
 
 //handler: is a interface that have method signature of serveHTTP(ResponseWriter,*Request)
