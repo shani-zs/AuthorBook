@@ -1,7 +1,6 @@
 package AuthorBook
 
 import (
-	"bytes"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -91,17 +90,18 @@ func FetchingAuthor(id int) (int, Author) {
 //GetAllBook : returns all books to the client
 func GetAllBook(w http.ResponseWriter, req *http.Request) {
 
-	bk := FetchingAllBooks()
+	books := FetchingAllBooks()
 
-	mbk, err := json.Marshal(bk)
+	EncodedBook, err := json.Marshal(books)
 	if err != nil {
 		fmt.Errorf("%v\n", err)
+		return
 	}
-	bytes.NewBuffer(mbk)
 
-	_, err = w.Write(mbk)
+	_, err = w.Write(EncodedBook)
 	if err != nil {
 		fmt.Errorf("%v", err)
+		return
 	}
 
 }
@@ -205,29 +205,25 @@ func PostBook(w http.ResponseWriter, req *http.Request) {
 	var book Book
 	json.Unmarshal(body, &book)
 
-	if id, _ := strconv.Atoi(book.BookId); id <= 0 {
+	if book.BookId == "" || book.AuthorId <= 0 || book.Author.FirstName == "" || book.Title == "" || book.BookId[0] == '-' {
 		fmt.Println("not valid constraints!")
 		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
 
-	if book.BookId == "" || book.AuthorId <= 0 || book.Author.FirstName == "" || book.Title == "" {
-		fmt.Println("not valid constraints!")
-		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	if !checkDob(book.Author.DOB) || !checkPublishDate(book.PublishedDate) || !checkPublication(book.Publication) {
 		fmt.Println("not valid constraints!")
 		w.WriteHeader(http.StatusBadRequest)
+
 		return
 	}
 
 	Db := Connection()
 
-	res := Db.QueryRow("select * from book where bookId=?", book.BookId)
+	row := Db.QueryRow("select * from book where bookId=?", book.BookId)
 	var checkExitingId Book
-	_ = res.Scan(&checkExitingId.BookId)
+	_ = row.Scan(&checkExitingId.BookId)
 	if checkExitingId.BookId == book.BookId {
 		fmt.Errorf("failed")
 		w.WriteHeader(http.StatusBadRequest)
@@ -248,38 +244,29 @@ func PostBook(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	w.Write(body)
+	fmt.Fprintf(w, "successfully inserted at id=%v", book.BookId)
 	w.WriteHeader(http.StatusCreated)
 }
 
 // PostAuthor : post the author to the database
 func PostAuthor(w http.ResponseWriter, req *http.Request) {
 	body := req.Body
-
-	data, err := io.ReadAll(body)
+	ReqData, err := io.ReadAll(body)
 	if err != nil {
 		fmt.Errorf("failed:%v\n", err)
 		w.WriteHeader(http.StatusBadRequest)
 	}
-
 	var author Author
-	json.Unmarshal(data, &author)
+	json.Unmarshal(ReqData, &author)
 
-	a, _ := FetchingAuthor(author.AuthorId)
-	if a == author.AuthorId || author.FirstName == "" {
-		fmt.Errorf("failed : %v\n", err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	if !checkDob(author.DOB) {
-		fmt.Println("not valid DOB")
+	_, existingAuthor := FetchingAuthor(author.AuthorId)
+	if existingAuthor.AuthorId == author.AuthorId || author.FirstName == "" || author.AuthorId <= 0 || !checkDob(author.DOB) {
+		fmt.Errorf("invalid constraints \n")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	Db := Connection()
-
 	_, err = Db.Exec("insert into author(authorId,firstname,lastName,DOB, penName)values(?,?,?,?,?)", author.AuthorId,
 		author.FirstName, author.LastName, author.DOB, author.PenName)
 	if err != nil {
@@ -289,19 +276,19 @@ func PostAuthor(w http.ResponseWriter, req *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-// PutBook : updates the particular field in book table
+// PutBook : updates the particular field in book table and if not exits then creates
 func PutBook(w http.ResponseWriter, req *http.Request) {
 
 	body := req.Body
 	params := mux.Vars(req)
-	data, err := io.ReadAll(body)
+	ReqBody, err := io.ReadAll(body)
 	if err != nil {
 		fmt.Errorf("failed:%v\n", err)
 		return
 	}
 
 	var book Book
-	json.Unmarshal(data, &book)
+	json.Unmarshal(ReqBody, &book)
 
 	id, author := FetchingAuthor(book.AuthorId)
 	if id != book.AuthorId {
@@ -321,19 +308,23 @@ func PutBook(w http.ResponseWriter, req *http.Request) {
 
 	var checkExistingBook Book
 	row := Db.QueryRow("select * from book where bookId=?", params["id"])
-	if err = row.Scan(&checkExistingBook.BookId, &checkExistingBook.AuthorId, &checkExistingBook.Title, &checkExistingBook.Publication, &checkExistingBook.PublishedDate); err == nil {
-		_ = Db.QueryRow("delete from book where bookId=?", params["id"])
-		_, err = Db.Exec("insert into book(bookId,authorId,title,publication,publishedDate)values(?,?,?,?,?)",
-			book.BookId, book.AuthorId, book.Title, book.Publication, book.PublishedDate)
 
+	if err = row.Scan(&checkExistingBook.BookId, &checkExistingBook.AuthorId, &checkExistingBook.Title,
+		&checkExistingBook.Publication, &checkExistingBook.PublishedDate); err == nil {
+		_, err = Db.Exec("update book set bookId=?,authorId=?,title=?,publication=?,publishedDate=? where bookId=?",
+			book.BookId, book.AuthorId, book.Title, book.Publication, book.PublishedDate, params["id"])
+
+		fmt.Fprintf(w, "successfull updated id =%v\n", params["id"])
 		w.WriteHeader(http.StatusCreated)
-		w.Write(data)
+		return
+
 	} else {
 		_, err = Db.Exec("insert into book(bookId,authorId,title,publication,publishedDate)values(?,?,?,?,?) ",
 			book.BookId, book.AuthorId, book.Title, book.Publication, book.PublishedDate)
 
-		w.Write(data)
+		fmt.Fprintf(w, "successfull inserted id =%v\n", params["id"])
 		w.WriteHeader(http.StatusCreated)
+		return
 	}
 
 }
@@ -356,25 +347,26 @@ func PutAuthor(w http.ResponseWriter, req *http.Request) {
 		fmt.Println("no valid DOB")
 		w.WriteHeader(http.StatusBadRequest)
 	}
+
 	id, _ := strconv.Atoi(params["id"])
 	var checkExistingAuthor Author
+
 	row := Db.QueryRow("select * from author where authorId=?", id)
 	if err = row.Scan(&checkExistingAuthor.AuthorId, &checkExistingAuthor.FirstName, &checkExistingAuthor.LastName,
 		&checkExistingAuthor.DOB, &checkExistingAuthor.PenName); err == nil {
-		fmt.Println(checkExistingAuthor)
-		_ = Db.QueryRow("delete from author where authorId=?", checkExistingAuthor.AuthorId)
-		_, err = Db.Exec("insert into author(authorId,firstName,lastName,DOB, penName)values(?,?,?,?,?)",
-			author.AuthorId, author.FirstName, author.LastName, author.DOB, author.PenName)
+		_, err = Db.Exec("update author set authorId=?,firstName=?,lastName=?,DOB=?,penName=? where authorId=?",
+			author.AuthorId, author.FirstName, author.LastName, author.DOB, author.PenName, id)
 
+		fmt.Fprintf(w, "successfull updated id =%v\n", params["id"])
 		w.WriteHeader(http.StatusCreated)
-		w.Write(ReqData)
+		return
 	} else {
-		fmt.Println(checkExistingAuthor)
 		_, err = Db.Exec("insert into author(authorId,firstName,lastName,DOB, penName)values(?,?,?,?,?)",
 			author.AuthorId, author.FirstName, author.LastName, author.DOB, author.PenName)
 
+		fmt.Fprintf(w, "successfull inserted id =%v\n", params["id"])
 		w.WriteHeader(http.StatusCreated)
-		w.Write(ReqData)
+		return
 	}
 }
 
@@ -398,6 +390,8 @@ func DeleteBook(w http.ResponseWriter, req *http.Request) {
 
 	Db := Connection()
 	_ = Db.QueryRow("delete from book where bookId=?", params["id"])
+
+	fmt.Fprintf(w, "successfully deleted id=%v\n", params["id"])
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -419,5 +413,7 @@ func DeleteAuthor(w http.ResponseWriter, req *http.Request) {
 
 	Db := Connection()
 	_ = Db.QueryRow("delete from author where authorId=?", params["id"])
+
+	fmt.Fprintf(w, "successfully deleted id=%v\n", params["id"])
 	w.WriteHeader(http.StatusNoContent)
 }

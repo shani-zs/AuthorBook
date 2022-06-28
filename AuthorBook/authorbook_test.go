@@ -189,6 +189,74 @@ func TestPostAuthor(t *testing.T) {
 	}
 }
 
+func TestPutBook(t *testing.T) {
+	testcases := []struct {
+		desc        string
+		inputMethod string
+		target      string
+		body        Book
+		expected    int
+	}{
+		{"updating a existing id", "PUT", "2", Book{"4", 1, "deciding decade",
+			"penguin", "20/03/2008", &Author{1, "shani",
+				"kumar", "30/04/2001", "sk"}}, http.StatusCreated},
+		{"inserting a new id", "PUT", "1", Book{"4", 1, "life",
+			"arihant", "20/03/2000", &Author{1, "shani",
+				"kumar", "30/04/2001", "sk"}}, http.StatusCreated},
+	}
+
+	for _, tc := range testcases {
+
+		ReqBody, err := json.Marshal(tc.body)
+		if err != nil {
+			fmt.Errorf("failed %v\n", err)
+		}
+		req := httptest.NewRequest(tc.inputMethod, "https://localhost:8000/book/{id}"+tc.target, bytes.NewBuffer(ReqBody))
+		req = mux.SetURLVars(req, map[string]string{"id": tc.target})
+		w := httptest.NewRecorder()
+		PutBook(w, req)
+
+		res := w.Result()
+		if res.StatusCode != tc.expected {
+			t.Errorf("failed for %s", tc.desc)
+		}
+		assert.Equal(t, tc.expected, res.StatusCode)
+	}
+}
+
+func TestPutAuthor(t *testing.T) {
+	testcases := []struct {
+		desc        string
+		inputMethod string
+		target      string
+		author      Author
+		expected    int
+	}{
+		{"updating a existing id", "PUT", "7", Author{1, "shani",
+			"kumar", "30/04/2001", "sk"}, http.StatusCreated},
+		{"inserting a new id", "PUT", "1", Author{10, "stephen",
+			"hawkins", "30/04/2001", "sk"}, http.StatusCreated},
+	}
+
+	for _, tc := range testcases {
+
+		ReqBody, err := json.Marshal(tc.author)
+		if err != nil {
+			fmt.Errorf("failed %v\n", err)
+		}
+		req := httptest.NewRequest(tc.inputMethod, "https://localhost:8000/author/{id}"+tc.target, bytes.NewBuffer(ReqBody))
+		req = mux.SetURLVars(req, map[string]string{"id": tc.target})
+		w := httptest.NewRecorder()
+		PutAuthor(w, req)
+
+		res := w.Result()
+		if res.StatusCode != tc.expected {
+			t.Errorf("failed for %s", tc.desc)
+		}
+		assert.Equal(t, tc.expected, res.StatusCode)
+	}
+}
+
 func TestDeleteBook(t *testing.T) {
 	testcases := []struct {
 		desc        string
@@ -222,7 +290,7 @@ func TestDeleteAuthor(t *testing.T) {
 		target      string
 		expected    int
 	}{
-		{"valid authorId", "DELETE", "3", http.StatusNoContent},
+		{"valid authorId", "DELETE", "7", http.StatusNoContent},
 		{"invalid authorId", "DELETE", "-3", http.StatusBadRequest},
 	}
 
@@ -231,59 +299,6 @@ func TestDeleteAuthor(t *testing.T) {
 		req := httptest.NewRequest(tc.inputMethod, "https://localhost:8000/author/{id}"+tc.target, nil)
 		w := httptest.NewRecorder()
 		req = mux.SetURLVars(req, map[string]string{"id": tc.target})
-		DeleteAuthor(w, req)
-
-		res := w.Result()
-		if res.StatusCode != tc.expected {
-			t.Errorf("failed for %s", tc.desc)
-		}
-		assert.Equal(t, tc.expected, res.StatusCode)
-	}
-}
-
-func TestPutBook(t *testing.T) {
-	testcases := []struct {
-		desc        string
-		inputMethod string
-		target      string
-		body        Book
-		expected    int
-	}{
-		{"valid case", "PUT", "local", Book{"4", 1, "deciding decade",
-			"penguin", "20/03/2010", &Author{1, "shani",
-				"kumar", "30/04/2001", "sk"}}, http.StatusCreated},
-	}
-
-	for _, tc := range testcases {
-
-		req := httptest.NewRequest(tc.inputMethod, tc.target, nil)
-		w := httptest.NewRecorder()
-		PutBook(w, req)
-
-		res := w.Result()
-		if res.StatusCode != tc.expected {
-			t.Errorf("failed for %s", tc.desc)
-		}
-		assert.Equal(t, tc.expected, res.StatusCode)
-	}
-}
-
-func TestPutAuthor(t *testing.T) {
-	testcases := []struct {
-		desc        string
-		inputMethod string
-		target      string
-		author      Author
-		expected    int
-	}{
-		{"valid case", "PUT", "local",
-			Author{1, "shani", "kumar", "30/04/2001", "sk"}, http.StatusCreated},
-	}
-
-	for _, tc := range testcases {
-
-		req := httptest.NewRequest(tc.inputMethod, tc.target, nil)
-		w := httptest.NewRecorder()
 		DeleteAuthor(w, req)
 
 		res := w.Result()
