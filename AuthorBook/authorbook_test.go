@@ -16,22 +16,33 @@ import (
 func TestGetAllBook(t *testing.T) {
 
 	Testcases := []struct {
-		desc        string
-		methodInput string
-		target      string
-		//body        io.Reader
-		expected []Book
+		desc          string
+		methodInput   string
+		target        string
+		title         string
+		includeAuthor string
+		expected      []Book
 	}{
-		{"test for fetching books", "GET", "http://localhost:8000/book", []Book{{"1",
+		{"getting all books", "GET", "http://localhost:8000/book", "", "", []Book{{"1",
 			1, "book one", "penguin", "20/06/2018", &Author{1, "shani",
 				"kumar", "30/04/2001", "sk"}},
 			{"2", 1, "book two", "penguin", "20/08/2018", &Author{1, "shani",
 				"kumar", "30/04/2001", "sk"}}},
 		},
+		{"getting book with author", "GET", "http://localhost:8000/book", "book two", "true", []Book{
+			{"2", 1, "book two", "penguin", "20/08/2018", &Author{1, "shani",
+				"kumar", "30/04/2001", "sk"}}},
+		},
+		{"getting book without author", "GET", "http://localhost:8000/book", "book two", "true", []Book{
+			{"2", 1, "book two", "penguin", "20/08/2018", &Author{0, "",
+				"", "", ""}}},
+		},
 	}
 
 	for _, tc := range Testcases {
 		req := httptest.NewRequest(tc.methodInput, tc.target, nil)
+		req.URL.Query().Set(tc.title, "book two")
+		req.URL.Query().Set(tc.includeAuthor, "true")
 		w := httptest.NewRecorder()
 		GetAllBook(w, req)
 
@@ -58,15 +69,18 @@ func TestGetBookById(t *testing.T) {
 		bookId             string
 		expected           Book
 		expectedStatusCode int
+		expectedBook       Book
 	}{
 		{"fetching book by id", "GET", "2",
 			Book{"2", 1, "book two", "penguin", "20/08/2018",
-				&Author{1, "shani", "kumar", "30/04/2001", "sk"}}, http.StatusOK},
+				&Author{1, "shani", "kumar", "30/04/2001", "sk"}},
+			http.StatusOK, Book{"2", 1, "book two", "penguin", "20/08/2018",
+				&Author{1, "shani", "kumar", "30/04/2001", "sk"}}},
 		{"invalid id", "GET", "-2",
 			Book{"-2", 1, "book two", "penguin", "20/08/2018",
-				&Author{1, "shani", "kumar", "30/04/2001", "sk"}}, http.StatusBadRequest},
+				&Author{1, "shani", "kumar", "30/04/2001", "sk"}}, http.StatusBadRequest, Book{}},
 		{"invalid method", "POST", "2",
-			Book{}, http.StatusBadRequest},
+			Book{}, http.StatusBadRequest, Book{}},
 	}
 
 	for _, tc := range Testcases {
@@ -88,7 +102,7 @@ func TestGetBookById(t *testing.T) {
 		if resp.StatusCode != tc.expectedStatusCode {
 			t.Errorf("failed for %v\n", tc.desc)
 		}
-		//assert.Equal(t, tc.expected, book)
+		assert.Equal(t, tc.expectedBook, book)
 	}
 }
 
@@ -150,6 +164,7 @@ func TestPostBook(t *testing.T) {
 		if res.StatusCode != tc.expected {
 			t.Errorf("failed for %v\n", tc.desc)
 		}
+		//assert.Equal(t, tc.expected, res.StatusCode)
 	}
 }
 
@@ -305,6 +320,6 @@ func TestDeleteAuthor(t *testing.T) {
 		if res.StatusCode != tc.expected {
 			t.Errorf("failed for %s", tc.desc)
 		}
-		assert.Equal(t, tc.expected, res.StatusCode)
+
 	}
 }
