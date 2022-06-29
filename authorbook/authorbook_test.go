@@ -1,9 +1,8 @@
-package AuthorBook
+package authorbook
 
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"io"
@@ -24,25 +23,21 @@ func TestGetAllBook(t *testing.T) {
 		expected      []Book
 	}{
 		{"getting all books", "GET", "http://localhost:8000/book", "", "", []Book{{"1",
-			1, "book one", "penguin", "20/06/2018", nil},
+			1, "book one", "scholastic", "20/06/2018", nil},
 			{"2", 1, "book two", "penguin", "20/08/2018", nil}},
 		},
-		{"getting book with author", "GET", "http://localhost:8000/book", "book two", "true", []Book{
+		{"getting book with author", "GET", "http://localhost:8000/book", "book+two", "true", []Book{
 			{"2", 1, "book two", "penguin", "20/08/2018", &Author{1, "shani",
 				"kumar", "30/04/2001", "sk"}}},
 		},
-		{"getting book without author", "GET", "http://localhost:8000/book", "book two", "true", []Book{
-			{"2", 1, "book two", "penguin", "20/08/2018", &Author{0, "",
-				"", "", ""}}},
+		{"getting book without author", "GET", "http://localhost:8000/book", "book+two", "false", []Book{
+			{"2", 1, "book two", "penguin", "20/08/2018", nil}},
 		},
 	}
 
 	for _, tc := range Testcases {
 		req := httptest.NewRequest(tc.methodInput, tc.target+"?title="+tc.title+"&includeAuthor="+tc.includeAuthor, nil)
-		req.URL.Query().Add("title", tc.title)
-		//req.URL.Query().Add("includeAuthor", tc.includeAuthor)
 
-		//fmt.Println(req.URL.Query())
 		w := httptest.NewRecorder()
 		GetAllBook(w, req)
 
@@ -85,7 +80,7 @@ func TestGetBookById(t *testing.T) {
 		req := httptest.NewRequest(tc.methodInput, "http://localhost:8000/book/{id}"+tc.bookId, nil)
 		w := httptest.NewRecorder()
 		req = mux.SetURLVars(req, map[string]string{"id": tc.bookId})
-		GetBookById(w, req)
+		GetBookByID(w, req)
 
 		resp := w.Result()
 		body, err := io.ReadAll(resp.Body)
@@ -150,7 +145,7 @@ func TestPostBook(t *testing.T) {
 
 		b, err := json.Marshal(tc.body)
 		if err != nil {
-			fmt.Println("error:", err)
+			log.Printf("failed : %v", err)
 		}
 
 		req := httptest.NewRequest(tc.inputMethod, tc.target, bytes.NewBuffer(b))
@@ -187,7 +182,7 @@ func TestPostAuthor(t *testing.T) {
 
 		author, err := json.Marshal(tc.body)
 		if err != nil {
-			fmt.Println("error:", err)
+			log.Printf("error: %v", err)
 		}
 
 		req := httptest.NewRequest(tc.inputMethod, tc.target, bytes.NewBuffer(author))
@@ -215,13 +210,22 @@ func TestPutBook(t *testing.T) {
 		{"inserting a new id", "PUT", "1", Book{"4", 1, "life",
 			"arihant", "20/03/2000", &Author{1, "shani",
 				"kumar", "30/04/2001", "sk"}}, http.StatusCreated},
+		{" invalid publishDate", "PUT", "1", Book{"4", 1, "life",
+			"arihant", "20/00/2000", &Author{1, "shani",
+				"kumar", "30/04/2001", "sk"}}, http.StatusBadRequest},
+		{"inserting a authorId", "PUT", "1", Book{"4", 1, "life",
+			"arihant", "20/03/2000", &Author{1, "shani",
+				"kumar", "30/-04/2001", "sk"}}, http.StatusBadRequest},
+		{"incorrect author name", "PUT", "1", Book{"4", 1, "life",
+			"arihant", "20/03/2000", &Author{1, "shani",
+				"kumar", "30/04/2001", "sk"}}, http.StatusBadRequest},
 	}
 
 	for _, tc := range testcases {
 
 		ReqBody, err := json.Marshal(tc.body)
 		if err != nil {
-			fmt.Errorf("failed %v\n", err)
+			log.Printf("failed %v\n", err)
 		}
 		req := httptest.NewRequest(tc.inputMethod, "https://localhost:8000/book/{id}"+tc.target, bytes.NewBuffer(ReqBody))
 		req = mux.SetURLVars(req, map[string]string{"id": tc.target})
@@ -232,7 +236,6 @@ func TestPutBook(t *testing.T) {
 		if res.StatusCode != tc.expected {
 			t.Errorf("failed for %s", tc.desc)
 		}
-		assert.Equal(t, tc.expected, res.StatusCode)
 	}
 }
 
@@ -248,13 +251,17 @@ func TestPutAuthor(t *testing.T) {
 			"kumar", "30/04/2001", "sk"}, http.StatusCreated},
 		{"inserting a new id", "PUT", "1", Author{10, "stephen",
 			"hawkins", "30/04/2001", "sk"}, http.StatusCreated},
+		{"invalid author name", "PUT", "1", Author{10, "",
+			"hawkins", "30/04/2001", "sk"}, http.StatusCreated},
+		{"invalid dob", "PUT", "1", Author{10, "stephen",
+			"hawkins", "30/04/0000", "sk"}, http.StatusCreated},
 	}
 
 	for _, tc := range testcases {
 
 		ReqBody, err := json.Marshal(tc.author)
 		if err != nil {
-			fmt.Errorf("failed %v\n", err)
+			log.Printf("failed %v\n", err)
 		}
 		req := httptest.NewRequest(tc.inputMethod, "https://localhost:8000/author/{id}"+tc.target, bytes.NewBuffer(ReqBody))
 		req = mux.SetURLVars(req, map[string]string{"id": tc.target})
@@ -276,8 +283,8 @@ func TestDeleteBook(t *testing.T) {
 		target      string
 		expected    int
 	}{
-		{"valid id", "DELETE", "4", http.StatusNoContent},
-		{"invalid id", "DELETE", "-4", http.StatusBadRequest},
+		{"valid Book id", "DELETE", "4", http.StatusNoContent},
+		{"invalid book id", "DELETE", "-4", http.StatusBadRequest},
 	}
 
 	for _, tc := range testcases {
