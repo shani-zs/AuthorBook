@@ -1,10 +1,8 @@
 package authorservice
 
 import (
-	"errors"
 	"projects/GoLang-Interns-2022/authorbook/entities"
 	"projects/GoLang-Interns-2022/authorbook/store"
-	"projects/GoLang-Interns-2022/authorbook/store/author"
 	"strconv"
 	"strings"
 )
@@ -14,22 +12,22 @@ type AuthorService struct {
 }
 
 // New : factory function
-func New(s author.AuthorStore) AuthorService {
+func New(s store.AuthorStorer) AuthorService {
 	return AuthorService{s}
 }
 
-func (s AuthorService) PostAuthor(a entities.Author) (int64, error) {
-
+func (s AuthorService) PostAuthor(a entities.Author) (entities.Author, error) {
 	if a.FirstName == "" || !checkDob(a.DOB) {
-		return 0, errors.New("not valid constraints")
+		return entities.Author{}, nil
 	}
 
 	id, err := s.datastore.PostAuthor(a)
-	if err != nil {
-		return 0, err
+	if err != nil || id < 0 {
+		return entities.Author{}, err
 	}
 
-	return id, nil
+	a.AuthorID = id
+	return a, nil
 }
 
 func checkDob(dob string) bool {
@@ -51,29 +49,29 @@ func checkDob(dob string) bool {
 }
 
 // PutAuthor : business logic of putathor
-func (s AuthorService) PutAuthor(a entities.Author) (int64, error) {
+func (s AuthorService) PutAuthor(a entities.Author) (entities.Author, error) {
 	if a.FirstName == "" || !checkDob(a.DOB) {
-		return 0, errors.New("not valid constraints")
+		return entities.Author{}, nil
 	}
 
-	id, err := s.datastore.PostAuthor(a)
-	if err != nil {
-		return 0, err
+	id, err := s.datastore.PutAuthor(a)
+	if err != nil || id == -1 {
+		return entities.Author{}, err
 	}
 
-	return id, nil
+	a.AuthorID = id
+	return a, nil
 }
 
 // DeleteAuthor : Deletes the author at particular id
-
-func (s AuthorService) DeleteAuthor(id int) (int64, error) {
+func (s AuthorService) DeleteAuthor(id int) (int, error) {
 	if id < 0 {
-		return 0, errors.New("not valid id")
+		return -1, nil
 	}
 
 	count, err := s.datastore.DeleteAuthor(id)
-	if err != nil {
-		return 0, err
+	if err != nil || count <= 0 {
+		return -1, err
 	}
 
 	return count, nil

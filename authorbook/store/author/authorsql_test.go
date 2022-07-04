@@ -2,6 +2,7 @@ package author
 
 import (
 	"errors"
+	"log"
 	"projects/GoLang-Interns-2022/authorbook/driver"
 	"projects/GoLang-Interns-2022/authorbook/entities"
 	"testing"
@@ -15,9 +16,9 @@ func TestPostAuthor(t *testing.T) {
 		err error
 	}{
 		{"valid author", entities.Author{
-			4, "nilotpal", "mrinal", "20/05/1990", "Dark horse"}, errors.New("success")},
+			0, "nilotpalx", "mrinal", "20/05/1990", "Dark horse"}, errors.New("success")},
 		{"exiting author", entities.Author{
-			3, "nilotpal", "mrinal", "20/05/1990", "Dark horse"}, errors.New("existing author")},
+			0, "nilotpal", "mrinal", "20/05/1990", "Dark horse"}, errors.New("existing author")},
 	}
 
 	for _, tc := range testcases {
@@ -26,8 +27,11 @@ func TestPostAuthor(t *testing.T) {
 		authorStore := New(DB)
 
 		id, err := authorStore.PostAuthor(tc.body)
+		if err != nil {
+			log.Print(err)
+		}
 
-		if id == 0 && tc.err != err {
+		if id == -1 {
 			t.Errorf("failed for %v\n", tc.desc)
 		}
 	}
@@ -53,7 +57,7 @@ func TestPutAuthor(t *testing.T) {
 
 		id, err := authorStore.PostAuthor(tc.body)
 
-		if id == 0 && tc.err != err {
+		if id == -1 || tc.err != err {
 			t.Errorf("failed for %v\n", tc.desc)
 		}
 	}

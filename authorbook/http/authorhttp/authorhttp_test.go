@@ -3,14 +3,13 @@ package authorhttp
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
+	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"log"
 	"net/http"
 	"net/http/httptest"
-	"projects/GoLang-Interns-2022/authorbook/driver"
 	"projects/GoLang-Interns-2022/authorbook/entities"
-	"projects/GoLang-Interns-2022/authorbook/service/authorservice"
-	"projects/GoLang-Interns-2022/authorbook/store/author"
 	"testing"
 )
 
@@ -22,13 +21,14 @@ func TestPostAuthor(t *testing.T) {
 		expected int
 	}{
 		{"valid author", entities.Author{
-			4, "nilotpal", "mrinal", "20/05/1990", "Dark horse"}, http.StatusBadRequest},
+			4, "nilotpal", "mrinal", "20/05/1990", "Dark horse"}, http.StatusCreated},
 		{"exiting author", entities.Author{
 			3, "nilotpal", "mrinal", "20/05/1990", "Dark horse"}, http.StatusBadRequest},
 		{"invalid firstname", entities.Author{
 			3, "nilotpal", "mrinal", "20/05/1990", "Dark horse"}, http.StatusBadRequest},
 		{"invalid DOB", entities.Author{
 			3, "nilotpal", "mrinal", "20/00/1990", "Dark horse"}, http.StatusBadRequest},
+		{"nil body", entities.Author{}, http.StatusBadRequest},
 	}
 
 	for _, tc := range testcases {
@@ -39,11 +39,7 @@ func TestPostAuthor(t *testing.T) {
 
 		req := httptest.NewRequest("POST", "localhost:8000/author", bytes.NewReader(data))
 		w := httptest.NewRecorder()
-
-		DB := driver.Connection()
-		authorStore := author.New(DB)
-		authorService := authorservice.New(authorStore)
-		h := New(authorService)
+		h := New(mockService{})
 
 		h.PostAuthor(w, req)
 
@@ -69,6 +65,7 @@ func TestPutAuthor(t *testing.T) {
 			3, "nilotpal", "mrinal", "20/05/1990", "Dark horse"}, http.StatusBadRequest},
 		{"invalid DOB", entities.Author{
 			3, "nilotpal", "mrinal", "20/00/1990", "Dark horse"}, http.StatusBadRequest},
+		{"nil body", entities.Author{}, http.StatusBadRequest},
 	}
 
 	for _, tc := range testcases {
@@ -79,13 +76,9 @@ func TestPutAuthor(t *testing.T) {
 
 		req := httptest.NewRequest("POST", "localhost:8000/author", bytes.NewReader(data))
 		w := httptest.NewRecorder()
+		h := New(mockService{})
 
-		DB := driver.Connection()
-		authorStore := author.New(DB)
-		authorService := authorservice.New(authorStore)
-		h := New(authorService)
-
-		h.PostAuthor(w, req)
+		h.PutAuthor(w, req)
 
 		res := w.Result()
 		if tc.expected != res.StatusCode {
@@ -108,18 +101,46 @@ func TestDeleteAuthor(t *testing.T) {
 
 	for _, tc := range testcases {
 		req := httptest.NewRequest("DELETE", "localhost:8000/author/{id}"+tc.target, nil)
-
+		req = mux.SetURLVars(req, map[string]string{"id": tc.target})
 		w := httptest.NewRecorder()
-
-		DB := driver.Connection()
-		authorStore := author.New(DB)
-		authorService := authorservice.New(authorStore)
-		h := New(authorService)
+		h := New(mockService{})
 
 		h.DeleteAuthor(w, req)
 
 		res := w.Result()
-
+		if tc.expected != res.StatusCode {
+			t.Errorf("failed for %v\n", tc.desc)
+		}
 		assert.Equal(t, tc.expected, res.StatusCode)
+	}
+}
+
+type mockService struct{}
+
+func (h mockService) PutAuthor(author2 entities.Author) (entities.Author, error) {
+	//TODO implement me
+	if author2.AuthorID == 4 {
+		return entities.Author{}, nil
+	} else {
+		return entities.Author{}, errors.New("invalid constraints")
+	}
+}
+
+func (h mockService) DeleteAuthor(id int) (int, error) {
+	//TODO implement me
+	if id == 4 {
+		return id, nil
+	} else {
+		return -1, errors.New("invalid")
+	}
+
+}
+
+func (h mockService) PostAuthor(author2 entities.Author) (entities.Author, error) {
+	//TODO implement me
+	if author2.AuthorID == 4 {
+		return entities.Author{}, nil
+	} else {
+		return entities.Author{}, errors.New("invalid constraints")
 	}
 }
