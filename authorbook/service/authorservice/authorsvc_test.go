@@ -14,15 +14,16 @@ func TestPostAuthor(t *testing.T) {
 
 		expected entities.Author
 	}{
-		{"valid author", entities.Author{
-			4, "nilotpal", "mrinal", "20/05/1990", "Dark horse"},
-			entities.Author{4, "nilotpal", "mrinal", "20/05/1990", "Dark horse"}},
-		{"existing author", entities.Author{
-			3, "nilotpal", "mrinal", "00/05/1990", "Dark horse"}, entities.Author{}},
-		{"invalid firstname", entities.Author{
-			3, " ", "mrinal", "20/00/1990", "Dark horse"}, entities.Author{}},
-		{"invalid DOB", entities.Author{
-			3, "nilotpal", "mrinal", "20/01/0", "Dark horse"}, entities.Author{}},
+		{desc: "valid author", body: entities.Author{
+			AuthorID: 4, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/05/1990", PenName: "Dark horse"},
+			expected: entities.Author{AuthorID: 4, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/05/1990",
+				PenName: "Dark horse"}},
+		{desc: "existing author", body: entities.Author{
+			AuthorID: 3, FirstName: "nilotpal", LastName: "mrinal", DOB: "00/05/1990", PenName: "Dark horse"}},
+		{desc: "invalid firstname", body: entities.Author{
+			AuthorID: 3, FirstName: " ", LastName: "mrinal", DOB: "20/00/1990", PenName: "Dark horse"}},
+		{desc: "invalid DOB", body: entities.Author{
+			AuthorID: 3, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/01/0", PenName: "Dark horse"}},
 	}
 
 	for _, tc := range testcases {
@@ -46,18 +47,18 @@ func TestPutAuthor(t *testing.T) {
 
 		expected entities.Author
 	}{
-		{"valid author", entities.Author{
-			4, "nilotpal", "mrinal", "20/05/1990", "Dark horse"},
-			entities.Author{4, "nilotpal", "mrinal", "20/05/1990", "Dark horse"}},
-		{"existing author", entities.Author{
-			3, "nilotpal", "mrinal", "20/05/1990", "Dark horse"}, entities.Author{}},
-		{"invalid firstname", entities.Author{
-			3, "nilotpal", "mrinal", "20/05/1990", "Dark horse"}, entities.Author{}},
-		{"invalid DOB", entities.Author{
-			3, "nilotpal", "mrinal", "20/00/1990", "Dark horse"}, entities.Author{}},
-		{"valid author", entities.Author{
-			5, "nilotpal", "mrinal", "20/05/1990", "Dark horse"},
-			entities.Author{}},
+		{desc: "valid author", body: entities.Author{
+			AuthorID: 4, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/05/1990", PenName: "Dark horse"},
+			expected: entities.Author{AuthorID: 4, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/05/1990",
+				PenName: "Dark horse"}},
+		{desc: "existing author", body: entities.Author{
+			AuthorID: 3, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/05/1990", PenName: "Dark horse"}},
+		{desc: "invalid firstname", body: entities.Author{
+			AuthorID: 3, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/05/1990", PenName: "Dark horse"}},
+		{desc: "invalid DOB", body: entities.Author{
+			AuthorID: 3, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/00/1990", PenName: "Dark horse"}},
+		{desc: "valid author", body: entities.Author{
+			AuthorID: 5, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/05/1990", PenName: "Dark horse"}},
 	}
 
 	for _, tc := range testcases {

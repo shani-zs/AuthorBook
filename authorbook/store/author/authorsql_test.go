@@ -1,8 +1,6 @@
 package author
 
 import (
-	"errors"
-	"log"
 	"projects/GoLang-Interns-2022/authorbook/driver"
 	"projects/GoLang-Interns-2022/authorbook/entities"
 	"testing"
@@ -13,48 +11,48 @@ func TestPostAuthor(t *testing.T) {
 		desc string
 		body entities.Author
 
-		err error
+		expectedID int
 	}{
-		{"valid author", entities.Author{
-			0, "nilotpalx", "mrinal", "20/05/1990", "Dark horse"}, errors.New("success")},
-		{"exiting author", entities.Author{
-			0, "nilotpal", "mrinal", "20/05/1990", "Dark horse"}, errors.New("existing author")},
+		{desc: "valid author", body: entities.Author{
+			AuthorID: 5, FirstName: "nilotpalx", LastName: "mrinal", DOB: "20/05/1990", PenName: "Dark horse"},
+			expectedID: 5},
+		{desc: "exiting author", body: entities.Author{
+			AuthorID: 1, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/05/1990", PenName: "Dark horse"},
+			expectedID: -1},
 	}
 
 	for _, tc := range testcases {
 		DB := driver.Connection()
 		authorStore := New(DB)
 
-		id, err := authorStore.PostAuthor(tc.body)
-		if err != nil {
-			log.Print(err)
-		}
+		id, _ := authorStore.PostAuthor(tc.body)
 
-		if id == -1 {
+		if id != tc.expectedID {
 			t.Errorf("failed for %v\n", tc.desc)
 		}
 	}
 }
-
 func TestPutAuthor(t *testing.T) {
 	testcases := []struct {
 		desc string
 		body entities.Author
 
-		err error
+		expected int
 	}{
-		{"valid author", entities.Author{
-			4, "nilotpal", "mrinal", "20/05/1990", "Dark horse"}, errors.New("success")},
-		{"exiting author", entities.Author{
-			3, "nilotpal", "mrinal", "20/05/1990", "Dark horse"}, errors.New("existing author")},
+		{desc: "valid author", body: entities.Author{
+			AuthorID: 4, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/05/1990", PenName: "Dark horse"},
+			expected: -1},
+		{desc: "exiting author", body: entities.Author{
+			AuthorID: 3, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/05/1990", PenName: "Dark horse"},
+			expected: -1},
 	}
 	for _, tc := range testcases {
 		DB := driver.Connection()
 		authorStore := New(DB)
 
-		id, err := authorStore.PostAuthor(tc.body)
+		id, _ := authorStore.PostAuthor(tc.body)
 
-		if id == -1 || tc.err != err {
+		if id != tc.expected {
 			t.Errorf("failed for %v\n", tc.desc)
 		}
 	}
@@ -65,19 +63,19 @@ func TestDeleteAuthor(t *testing.T) {
 		desc   string
 		target int
 		// output
-		err error
+		expected int
 	}{
-		{"valid authorId", 4, nil},
-		{"invalid authorId", 5, errors.New("invalid ID")},
+		{"valid authorId", 4, 1},
+		{"invalid authorId", -1, 0},
 	}
 
 	for _, tc := range testcases {
 		DB := driver.Connection()
 		authorStore := New(DB)
 
-		id, err := authorStore.DeleteAuthor(tc.target)
+		count, _ := authorStore.DeleteAuthor(tc.target)
 
-		if id == 0 && tc.err != err {
+		if count != tc.expected {
 			t.Errorf("failed for %v\n", tc.desc)
 		}
 	}

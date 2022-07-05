@@ -1,7 +1,6 @@
 package book
 
 import (
-	"errors"
 	"projects/GoLang-Interns-2022/authorbook/driver"
 	"projects/GoLang-Interns-2022/authorbook/entities"
 	"reflect"
@@ -16,16 +15,14 @@ func TestGetAllBook(t *testing.T) {
 
 		expected []entities.Book
 	}{
-		{"getting all books", "", "", []entities.Book{{1,
-			1, "book one", "scholastic", "20/06/2018", entities.Author{}},
-			{2, 1, "book two", "penguin", "20/08/2018", entities.Author{}}},
-		},
-		{"getting book with author and particular title", "book+two", "true", []entities.Book{
-			{2, 1, "book two", "penguin", "20/08/2018", entities.Author{1, "shani",
-				"kumar", "30/04/2001", "sk"}}},
-		},
-		{"getting book without author", "book+two", "true", []entities.Book{
-			{2, 1, "book two", "penguin", "20/08/2018", entities.Author{}}},
+		{desc: "getting all books", title: "", includeAuthor: "", expected: []entities.Book{{BookID: 1,
+			AuthorID: 1, Title: "book one", Publication: "penguin", PublishedDate: "20/06/2000",
+			Author: entities.Author{}},
+		}},
+		{desc: "getting book with author and particular title", title: "book one", includeAuthor: "true",
+			expected: []entities.Book{{BookID: 1, AuthorID: 1, Title: "book one", Publication: "penguin",
+				PublishedDate: "20/06/2000", Author: entities.Author{AuthorID: 1, FirstName: "shani",
+					LastName: "kumar", DOB: "30/04/1980", PenName: "jack"}}},
 		},
 	}
 
@@ -33,9 +30,9 @@ func TestGetAllBook(t *testing.T) {
 		DB := driver.Connection()
 		bookStore := New(DB)
 
-		book := bookStore.GetAllBook(tc.title, tc.includeAuthor)
+		books := bookStore.GetAllBook(tc.title, tc.includeAuthor)
 
-		if !reflect.DeepEqual(book, tc.expected) {
+		if !reflect.DeepEqual(books, tc.expected) {
 			t.Errorf("failed for %v\n", tc.desc)
 		}
 	}
@@ -47,9 +44,9 @@ func TestGetBookByID(t *testing.T) {
 
 		expected entities.Book
 	}{
-		{"fetching book by id",
-			1, entities.Book{1, 1, "book two", "penguin",
-				"20/08/2018", entities.Author{1, "shani", "kumar", "30/04/2001", "sk"}}},
+		{desc: "fetching book by id",
+			targetID: 1, expected: entities.Book{BookID: 1,
+				AuthorID: 1, Title: "book one", Publication: "penguin", PublishedDate: "20/06/2000"}},
 
 		{"invalid id", -1, entities.Book{}},
 	}
@@ -72,19 +69,21 @@ func TestPostBook(t *testing.T) {
 
 		err error
 	}{
-		{"valid case", entities.Book{4, 1, "deciding decade", "penguin",
-			"20/03/2010", entities.Author{1, "shani", "kumar", "30/04/2001", "sk"}}, nil},
+		{desc: "valid case", body: entities.Book{BookID: 4, AuthorID: 1, Title: "deciding decade", Publication: "penguin",
+			PublishedDate: "20/03/2010", Author: entities.Author{AuthorID: 1, FirstName: "shani", LastName: "kumar",
+				DOB: "30/04/2001", PenName: "sk"}}},
 
-		{"already existing book", entities.Book{4, 1, "deciding decade", "penguin",
-			"20/03/2010", entities.Author{1, "shani", "kumar", "30/04/2001", "sk"}}, errors.New("already existing")},
+		{desc: "already existing book", body: entities.Book{BookID: 4, AuthorID: 1, Title: "deciding decade",
+			Publication: "penguin", PublishedDate: "20/03/2010", Author: entities.Author{AuthorID: 1, FirstName: "shani",
+				LastName: "kumar", DOB: "30/04/2001", PenName: "sk"}}},
 	}
 	for _, tc := range testcases {
 		DB := driver.Connection()
 		bookStore := New(DB)
 
-		id, err := bookStore.PostBook(&tc.body)
+		_, err := bookStore.PostBook(&tc.body)
 
-		if id == 0 && tc.err != err {
+		if tc.err != err {
 			t.Errorf("failed for %v\n", tc.desc)
 		}
 	}
@@ -97,20 +96,22 @@ func TestPutBook(t *testing.T) {
 
 		expectedErr error
 	}{
-		{"creating a book", entities.Book{4, 1, "deciding decade", "penguin",
-			"20/03/2010", entities.Author{1, "shani", "kumar", "30/04/2001", "sk"}}, 1, nil},
+		{desc: "creating a book", body: entities.Book{BookID: 4, AuthorID: 1, Title: "deciding", Publication: "penguin",
+			PublishedDate: "20/03/2010", Author: entities.Author{AuthorID: 1, FirstName: "shani", LastName: "kumar",
+				DOB: "30/04/2001", PenName: "sk"}}, targetID: 13},
 
-		{"updating a book", entities.Book{4, 1, "deciding decade", "penguin",
-			"20/03/2010", entities.Author{1, "shani", "kumar", "30/04/2001", "sk"}}, 2, nil},
+		{desc: "updating a book", body: entities.Book{BookID: 4, AuthorID: 1, Title: "deciding decade",
+			Publication: "penguin", PublishedDate: "20/03/2010", Author: entities.Author{AuthorID: 1,
+				FirstName: "shani", LastName: "kumar", DOB: "30/04/2001", PenName: "sk"}}, targetID: 14},
 	}
 
 	for _, tc := range testcases {
 		DB := driver.Connection()
 		bookStore := New(DB)
 
-		id, err := bookStore.PutBook(&tc.body, tc.targetID)
+		_, err := bookStore.PutBook(&tc.body, tc.targetID)
 
-		if id == 0 && tc.expectedErr != err {
+		if tc.expectedErr != err {
 			t.Errorf("failed for %v\n", tc.desc)
 		}
 	}
@@ -120,19 +121,19 @@ func TestDeleteBook(t *testing.T) {
 		desc     string
 		targetID int
 
-		err error
+		expected int
 	}{
-		{"valid id", 1, nil},
-		{"invalid id", -1, errors.New("invalid id")},
+		{"valid id", 14, 1},
+		{"invalid id", -1, 0},
 	}
 
 	for _, tc := range testcases {
 		DB := driver.Connection()
 		bookStore := New(DB)
 
-		id, err := bookStore.DeleteBook(tc.targetID)
+		id, _ := bookStore.DeleteBook(tc.targetID)
 
-		if id == 0 && tc.err != err {
+		if id != tc.expected {
 			t.Errorf("failed for %v\n", tc.desc)
 		}
 	}

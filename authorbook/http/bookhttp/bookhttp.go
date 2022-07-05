@@ -2,13 +2,14 @@ package bookhttp
 
 import (
 	"encoding/json"
-	"github.com/gorilla/mux"
 	"io"
 	"log"
 	"net/http"
 	"projects/GoLang-Interns-2022/authorbook/entities"
 	"projects/GoLang-Interns-2022/authorbook/service"
 	"strconv"
+
+	"github.com/gorilla/mux"
 )
 
 type BookHandler struct {
@@ -151,7 +152,9 @@ func (h BookHandler) DeleteBook(w http.ResponseWriter, req *http.Request) {
 
 	_, err = h.bookH.DeleteBook(id)
 	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
 		log.Print(err)
+
 		return
 	}
 

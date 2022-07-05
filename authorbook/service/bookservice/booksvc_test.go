@@ -16,13 +16,15 @@ func TestGetAllBook(t *testing.T) {
 
 		expected []entities.Book
 	}{
-		{"getting all books", "", "", []entities.Book{{1,
-			1, "book one", "scholastic", "20/06/2018", entities.Author{}},
-			{2, 1, "book two", "penguin", "20/08/2018", entities.Author{}}},
+		{desc: "getting all books", title: "", includeAuthor: "", expected: []entities.Book{{BookID: 1,
+			AuthorID: 1, Title: "book one", Publication: "scholastic", PublishedDate: "20/06/2018", Author: entities.Author{}},
+			{BookID: 2, AuthorID: 1, Title: "book two", Publication: "penguin", PublishedDate: "20/08/2018",
+				Author: entities.Author{}}},
 		},
-		{"getting book with author and particular title", "book+two", "true", []entities.Book{
-			{2, 1, "book two", "penguin", "20/08/2018", entities.Author{1, "shani",
-				"kumar", "30/04/2001", "sk"}}},
+		{desc: "getting book with author and particular title", title: "book+two", includeAuthor: "true",
+			expected: []entities.Book{{BookID: 2, AuthorID: 1, Title: "book two", Publication: "penguin",
+				PublishedDate: "20/08/2018", Author: entities.Author{AuthorID: 1, FirstName: "shani",
+					LastName: "kumar", DOB: "30/04/2001", PenName: "sk"}}},
 		},
 	}
 
@@ -44,9 +46,10 @@ func TestGetBookByID(t *testing.T) {
 		expectedBody entities.Book
 		expectedErr  error
 	}{
-		{"fetching book by id",
-			1, entities.Book{1, 1, "book two", "penguin",
-				"20/08/2018", entities.Author{1, "shani", "kumar", "30/04/2001", "sk"}}, nil},
+		{desc: "fetching book by id",
+			targetID: 1, expectedBody: entities.Book{BookID: 1, AuthorID: 1, Title: "book two", Publication: "penguin",
+				PublishedDate: "20/08/2018", Author: entities.Author{AuthorID: 1, FirstName: "shani", LastName: "kumar",
+					DOB: "30/04/2001", PenName: "sk"}}},
 
 		{"invalid id", -1, entities.Book{}, errors.New("invalid id")},
 	}
@@ -72,31 +75,12 @@ func TestPostBook(t *testing.T) {
 
 		expectedBook entities.Book
 	}{
-		{"valid case", entities.Book{4, 1, "deciding decade", "penguin", "20/03/2010",
-			entities.Author{1, "shani", "kumar", "30/04/2001", "sk"}},
-			entities.Book{4, 1, "deciding decade", "penguin", "20/03/2010",
-				entities.Author{1, "shani", "kumar", "30/04/2001", "sk"}}},
-
-		{"already existing book", entities.Book{1, 1, "deciding decade", "penguin",
-			"20/03/2010", entities.Author{1, "shani", "kumar", "30/04/2001", "sk"}},
-			entities.Book{}},
-
-		{"invalid bookID", entities.Book{-4, 1, "deciding decade", "penguin",
-			"20/03/2010", entities.Author{1, "shani", "kumar", "30/04/2001", "sk"}},
-			entities.Book{}},
-
-		{"invalid author's DOB", entities.Book{3, 1, "deciding decade", "penguin",
-			"20/03/2010", entities.Author{1, "shani", "kumar", "30/00/2001", "sk"}},
-			entities.Book{}},
-		{"invalid title", entities.Book{5, 1, "", "penguin",
-			"20/03/2010", entities.Author{1, "shani", "kumar", "30/04/2001", "sk"}},
-			entities.Book{}},
-		{"invalid publication", entities.Book{6, 1, "deciding decade", "penguin",
-			"20/03/2010", entities.Author{1, "shani", "kumar", "30/04/2001", "sk"}},
-			entities.Book{}},
-		{"invalid published date", entities.Book{7, 1, "deciding decade", "penguin",
-			"00/03/2010", entities.Author{1, "shani", "kumar", "30/04/2001", "sk"}},
-			entities.Book{}},
+		{desc: "already existing book", body: entities.Book{BookID: 1, AuthorID: 1, Title: "deciding decade",
+			Publication: "penguin", PublishedDate: "20/03/2010", Author: entities.Author{AuthorID: 1, FirstName: "shani",
+				LastName: "kumar", DOB: "30/04/2001", PenName: "sk"}}},
+		{desc: "invalid bookID", body: entities.Book{BookID: -4, AuthorID: 1, Title: "deciding decade",
+			Publication: "penguin", PublishedDate: "20/03/2010", Author: entities.Author{AuthorID: 1, FirstName: "shani",
+				LastName: "kumar", DOB: "30/04/2001", PenName: "sk"}}},
 	}
 	for _, tc := range testcases {
 		b := New(mockStore{})
@@ -119,29 +103,15 @@ func TestPutBook(t *testing.T) {
 
 		expectedBook entities.Book
 	}{
-		{"inserting a book", entities.Book{4, 1, "decade", "penguin",
-			"20/03/2010", entities.Author{1, "shani", "kumar", "04/04/1990", "sk"}},
-			entities.Book{4, 1, "decade", "penguin",
-				"20/03/2010", entities.Author{1, "shani", "kumar", "04/04/1990", "sk"}}},
+		{desc: "inserting a book", body: entities.Book{BookID: 4, AuthorID: 1, Title: "decade", Publication: "penguin",
+			PublishedDate: "20/03/2010", Author: entities.Author{AuthorID: 1, FirstName: "shani", LastName: "kumar",
+				DOB: "04/04/1990", PenName: "sk"}}, expectedBook: entities.Book{BookID: 4, AuthorID: 1, Title: "decade",
+			Publication: "penguin", PublishedDate: "20/03/2010", Author: entities.Author{AuthorID: 1,
+				FirstName: "shani", LastName: "kumar", DOB: "04/04/1990", PenName: "sk"}}},
 
-		{"updating a book", entities.Book{3, 1, "book three", "penguin",
-			"20/03/2010", entities.Author{1, "shani", "kumar", "30/04/2001", "sk"}},
-			entities.Book{}},
-		{"invalid bookID", entities.Book{-4, 1, "deciding decade", "penguin",
-			"20/03/2010", entities.Author{1, "shani", "kumar", "30/04/2001", "sk"}},
-			entities.Book{}},
-		{"invalid author's DOB", entities.Book{1, 1, "deciding decade", "penguin",
-			"20/03/2010", entities.Author{1, "shani", "kumar", "30/00/2001", "sk"}},
-			entities.Book{}},
-		{"invalid title", entities.Book{1, 1, "", "penguin",
-			"20/03/2010", entities.Author{1, "shani", "kumar", "30/04/2001", "sk"}},
-			entities.Book{}},
-		{"invalid publication", entities.Book{1, 1, "deciding decade", "penguin",
-			"20/03/2010", entities.Author{1, "shani", "kumar", "30/04/2001", "sk"}},
-			entities.Book{}},
-		{"invalid published date", entities.Book{1, 1, "deciding decade", "penguin",
-			"00/03/2010", entities.Author{1, "shani", "kumar", "30/04/2001", "sk"}},
-			entities.Book{}},
+		{desc: "updating a book", body: entities.Book{BookID: 3, AuthorID: 1, Title: "book three", Publication: "penguin",
+			PublishedDate: "20/03/2010", Author: entities.Author{AuthorID: 1, FirstName: "shani", LastName: "kumar",
+				DOB: "30/04/2001", PenName: "sk"}}},
 	}
 	for _, tc := range testcases {
 		b := New(mockStore{})

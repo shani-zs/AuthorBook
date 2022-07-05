@@ -2,7 +2,7 @@ package book
 
 import (
 	"database/sql"
-	"fmt"
+	"errors"
 	"log"
 	"projects/GoLang-Interns-2022/authorbook/entities"
 )
@@ -51,13 +51,13 @@ func (bs Store) PostBook(book *entities.Book) (int, error) {
 	result, err := bs.DB.Exec("insert into book(author_id,title,publication,published_date)values(?,?,?,?)",
 		book.AuthorID, book.Title, book.Publication, book.PublishedDate)
 	if err != nil {
-		fmt.Println("hello")
-		return -1, err
+		log.Print(err)
+		return -1, errors.New("already existing")
 	}
 
 	id, err := result.LastInsertId()
 	if err != nil {
-		fmt.Println("shani")
+		log.Print(err)
 		return -1, err
 	}
 
@@ -95,7 +95,7 @@ func (bs Store) PutBook(book *entities.Book, id int) (int, error) {
 func (bs Store) DeleteBook(id int) (int, error) {
 	result, err := bs.DB.Exec("delete from book where id=?", id)
 	if err != nil {
-		return -1, nil
+		return -1, errors.New("invalid id")
 	}
 
 	count, err := result.RowsAffected()
@@ -133,7 +133,7 @@ func FetchingAllBooks(title string, db *sql.DB) []entities.Book {
 		if err != nil {
 			log.Print(err)
 		}
-		// b.Author = entities.Author{}
+
 		bk = append(bk, b)
 	}
 

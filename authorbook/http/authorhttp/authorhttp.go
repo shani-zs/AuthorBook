@@ -3,12 +3,13 @@ package authorhttp
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
 	"io"
 	"net/http"
 	"projects/GoLang-Interns-2022/authorbook/entities"
 	"projects/GoLang-Interns-2022/authorbook/service"
 	"strconv"
+
+	"github.com/gorilla/mux"
 )
 
 type AuthorHandler struct {

@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"projects/GoLang-Interns-2022/authorbook/entities"
 	"testing"
+
+	"github.com/gorilla/mux"
 )
 
 func TestPostAuthor(t *testing.T) {
@@ -19,15 +20,15 @@ func TestPostAuthor(t *testing.T) {
 
 		expected int
 	}{
-		{"valid author", entities.Author{
-			4, "nilotpal", "mrinal", "20/05/1990", "Dark horse"}, http.StatusCreated},
-		{"exiting author", entities.Author{
-			3, "nilotpal", "mrinal", "20/05/1990", "Dark horse"}, http.StatusBadRequest},
-		{"invalid firstname", entities.Author{
-			3, "nilotpal", "mrinal", "20/05/1990", "Dark horse"}, http.StatusBadRequest},
-		{"invalid DOB", entities.Author{
-			3, "nilotpal", "mrinal", "20/00/1990", "Dark horse"}, http.StatusBadRequest},
+		{desc: "invalid DOB", body: entities.Author{
+			AuthorID: 3, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/00/1990", PenName: "Dark horse"}, expected: http.StatusBadRequest},
 		{"nil body", entities.Author{}, http.StatusBadRequest},
+		{desc: "exiting author", body: entities.Author{
+			AuthorID: 3, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/05/1990", PenName: "Dark horse"}, expected: http.StatusBadRequest},
+		{desc: "invalid firstname", body: entities.Author{
+			AuthorID: 3, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/05/1990", PenName: "Dark horse"}, expected: http.StatusBadRequest},
+		{desc: "valid author", body: entities.Author{
+			AuthorID: 4, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/05/1990", PenName: "Dark horse"}, expected: http.StatusCreated},
 	}
 
 	for _, tc := range testcases {
@@ -56,14 +57,18 @@ func TestPutAuthor(t *testing.T) {
 
 		expected int
 	}{
-		{"valid author", entities.Author{
-			4, "Shani", "mrinal", "20/05/1970", "Dh"}, http.StatusCreated},
-		{"exiting author", entities.Author{
-			3, "shani", "mrinal", "20/05/1990", "Dark horse"}, http.StatusBadRequest},
-		{"invalid firstname", entities.Author{
-			3, "", "mrinal", "20/05/1990", "Dark horse"}, http.StatusBadRequest},
-		{"invalid DOB", entities.Author{
-			3, "nilotpal", "mrinal", "20/00/1990", "Dark horse"}, http.StatusBadRequest},
+		{desc: "valid author", body: entities.Author{
+			AuthorID: 4, FirstName: "Shani", LastName: "mrinal", DOB: "20/05/1970", PenName: "Dh"},
+			expected: http.StatusCreated},
+		{desc: "exiting author", body: entities.Author{
+			AuthorID: 3, FirstName: "shani", LastName: "mrinal", DOB: "20/05/1990", PenName: "Dark horse"},
+			expected: http.StatusBadRequest},
+		{desc: "invalid firstname", body: entities.Author{
+			AuthorID: 3, LastName: "mrinal", DOB: "20/05/1990", PenName: "Dark horse"},
+			expected: http.StatusBadRequest},
+		{desc: "invalid DOB", body: entities.Author{
+			AuthorID: 3, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/00/1990", PenName: "Dark horse"},
+			expected: http.StatusBadRequest},
 		{"nil body", entities.Author{}, http.StatusBadRequest},
 	}
 

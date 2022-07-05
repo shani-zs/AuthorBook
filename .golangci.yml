@@ -15,7 +15,7 @@ linters-settings:
   lll:
     line-length: 140
   goimports:
-    local-prefixes:
+    local-prefixes: github.com/zopsmart/data-loader-framework
   gocritic:
     enabled-tags:
       - diagnostic
@@ -78,3 +78,10 @@ linters:
     - varcheck
     - whitespace
     - wsl
+
+# golangci.com configuration
+# https://github.com/golangci/golangci/wiki/Configuration
+service:
+  golangci-lint-version: 1.45.0 # use the fixed version to not introduce new linters unexpectedly
+  prepare:
+    - echo "here I can run custom commands, but no preparation needed for this repo"

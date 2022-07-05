@@ -3,7 +3,6 @@ package bookhttp
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/gorilla/mux"
 	"io"
 	"log"
 	"net/http"
@@ -11,6 +10,9 @@ import (
 	"projects/GoLang-Interns-2022/authorbook/entities"
 	"reflect"
 	"testing"
+
+	"github.com/gorilla/mux"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGetAllBook(t *testing.T) {
@@ -21,13 +23,15 @@ func TestGetAllBook(t *testing.T) {
 
 		expectedBooks []entities.Book
 	}{
-		{"getting all books", "", "", []entities.Book{{1,
-			1, "book one", "scholastic", "20/06/2018", entities.Author{}},
-			{2, 1, "book two", "penguin", "20/08/2018", entities.Author{}}},
+		{desc: "getting all books", title: "", includeAuthor: "", expectedBooks: []entities.Book{{BookID: 1,
+			AuthorID: 1, Title: "book one", Publication: "scholastic", PublishedDate: "20/06/2018",
+			Author: entities.Author{}},
+			{BookID: 2, AuthorID: 1, Title: "book two", Publication: "penguin", PublishedDate: "20/08/2018", Author: entities.Author{}}},
 		},
-		//{"getting book with author and particular title", "book+two", "true", []entities.Book{
-		//	{2, 1, "book two", "penguin", "20/08/2018", entities.Author{1, "shani",
-		//		"kumar", "30/04/2001", "sk"}}}},
+		{desc: "getting book with author and particular title", title: "book+two", includeAuthor: "true",
+			expectedBooks: []entities.Book{{BookID: 2, AuthorID: 1, Title: "book two", Publication: "penguin",
+				PublishedDate: "20/08/2018", Author: entities.Author{AuthorID: 1, FirstName: "shani", LastName: "kumar",
+					DOB: "30/04/2001", PenName: "sk"}}}},
 	}
 
 	for _, tc := range Testcases {
@@ -48,7 +52,7 @@ func TestGetAllBook(t *testing.T) {
 
 		_ = json.Unmarshal(body, &books)
 
-		if reflect.DeepEqual(books, tc.expectedBooks) {
+		if !assert.Equal(t, tc.expectedBooks, books) {
 			t.Errorf("failed for %s\n", tc.desc)
 		}
 	}
@@ -56,16 +60,14 @@ func TestGetAllBook(t *testing.T) {
 
 func TestGetBookByID(t *testing.T) {
 	Testcases := []struct {
-		desc     string
-		targetID string
-
+		desc               string
+		targetID           string
 		expectedBook       entities.Book
 		expectedStatusCode int
 	}{
-		{"fetching book by id",
-			"1", entities.Book{1, 1, "book two", "penguin", "20/08/2018",
-				entities.Author{1, "shani", "kumar", "30/04/2001", "sk"}}, http.StatusOK},
-
+		{desc: "fetching book by id", targetID: "1", expectedBook: entities.Book{BookID: 1, AuthorID: 1, Title: "book two",
+			Publication: "penguin", PublishedDate: "20/08/2018", Author: entities.Author{AuthorID: 1, FirstName: "shani",
+				LastName: "kumar", DOB: "30/04/2001", PenName: "sk"}}, expectedStatusCode: http.StatusOK},
 		{"invalid id", "-1", entities.Book{}, http.StatusBadRequest},
 	}
 
@@ -88,7 +90,7 @@ func TestGetBookByID(t *testing.T) {
 
 		_ = json.Unmarshal(body, &books)
 
-		if reflect.DeepEqual(books, tc.expectedBook) {
+		if !reflect.DeepEqual(books, tc.expectedBook) {
 			t.Errorf("failed for %s\n", tc.desc)
 		}
 	}
@@ -99,26 +101,18 @@ func TestPostBook(t *testing.T) {
 		desc string
 		body entities.Book
 
-		expectedStatusCode int
+		expectedBook entities.Book
 	}{
-		{"valid case", entities.Book{4, 1, "deciding decade", "penguin",
-			"20/03/2010", entities.Author{1, "shani", "kumar", "30/04/2001", "sk"}}, http.StatusCreated},
-		{"already existing book", entities.Book{4, 1, "deciding decade", "penguin",
-			"20/03/2010", entities.Author{1, "shani", "kumar", "30/04/2001", "sk"}},
-			http.StatusBadRequest},
-		{"invalid bookID", entities.Book{-4, 1, "deciding decade", "penguin",
-			"20/03/2010", entities.Author{1, "shani", "kumar", "30/04/2001", "sk"}},
-			http.StatusBadRequest},
-		{"invalid author's DOB", entities.Book{4, 1, "deciding decade", "penguin",
-			"20/03/2010", entities.Author{1, "shani", "kumar", "30/00/2001", "sk"}},
-			http.StatusBadRequest},
-		{"invalid title", entities.Book{4, 1, "", "penguin",
-			"20/03/2010", entities.Author{1, "shani", "kumar", "30/04/2001", "sk"}}, http.StatusBadRequest},
-		{"invalid publication", entities.Book{4, 1, "deciding decade", "penguin",
-			"20/03/2010", entities.Author{1, "shani", "kumar", "30/04/2001", "sk"}},
-			http.StatusBadRequest},
-		{"invalid published date", entities.Book{4, 1, "deciding decade", "penguin",
-			"00/03/2010", entities.Author{1, "shani", "kumar", "30/04/2001", "sk"}}, http.StatusBadRequest},
+		{desc: "valid case", body: entities.Book{BookID: 4, AuthorID: 1, Title: "deciding decade", Publication: "penguin",
+			PublishedDate: "20/03/2010", Author: entities.Author{AuthorID: 1, FirstName: "shani", LastName: "kumar",
+				DOB: "30/04/2001", PenName: "sk"}},
+			expectedBook: entities.Book{BookID: 4, AuthorID: 1, Title: "deciding decade", Publication: "penguin",
+				PublishedDate: "20/03/2010", Author: entities.Author{AuthorID: 1, FirstName: "shani", LastName: "kumar",
+					DOB: "30/04/2001", PenName: "sk"}}},
+
+		{desc: "already existing book", body: entities.Book{BookID: 1, AuthorID: 1, Title: "deciding decade",
+			Publication: "penguin", PublishedDate: "20/03/2010", Author: entities.Author{AuthorID: 1, FirstName: "shani",
+				LastName: "kumar", DOB: "30/04/2001", PenName: "sk"}}},
 	}
 	for _, tc := range testcases {
 		b, err := json.Marshal(tc.body)
@@ -133,7 +127,17 @@ func TestPostBook(t *testing.T) {
 		h.PostBook(w, req)
 
 		result := w.Result()
-		if reflect.DeepEqual(tc.expectedStatusCode, result.StatusCode) {
+
+		var books entities.Book
+
+		body, err := io.ReadAll(result.Body)
+		if err != nil {
+			log.Print(err)
+		}
+
+		_ = json.Unmarshal(body, &books)
+
+		if !reflect.DeepEqual(tc.expectedBook, books) {
 			t.Errorf("failed for %s\n", tc.desc)
 		}
 	}
@@ -141,29 +145,23 @@ func TestPostBook(t *testing.T) {
 
 func TestPutBook(t *testing.T) {
 	testcases := []struct {
-		desc string
-		body entities.Book
-
-		expectedStatusCode int
+		desc         string
+		body         entities.Book
+		targetID     string
+		expectedBook entities.Book
 	}{
-		{"creating a book", entities.Book{4, 1, "deciding decade", "penguin",
-			"20/03/2010", entities.Author{1, "shani", "kumar", "30/04/2001", "sk"}}, http.StatusCreated},
-		{"already existing book", entities.Book{4, 1, "deciding decade", "penguin",
-			"20/03/2010", entities.Author{1, "shani", "kumar", "30/04/2001", "sk"}},
-			http.StatusCreated},
-		{"invalid bookID", entities.Book{-4, 1, "deciding decade", "penguin",
-			"20/03/2010", entities.Author{1, "shani", "kumar", "30/04/2001", "sk"}},
-			http.StatusBadRequest},
-		{"invalid author's DOB", entities.Book{4, 1, "deciding decade", "penguin",
-			"20/03/2010", entities.Author{1, "shani", "kumar", "30/00/2001", "sk"}},
-			http.StatusBadRequest},
-		{"invalid title", entities.Book{4, 1, "", "penguin",
-			"20/03/2010", entities.Author{1, "shani", "kumar", "30/04/2001", "sk"}}, http.StatusBadRequest},
-		{"invalid publication", entities.Book{4, 1, "deciding decade", "penguin",
-			"20/03/2010", entities.Author{1, "shani", "kumar", "30/04/2001", "sk"}},
-			http.StatusBadRequest},
-		{"invalid published date", entities.Book{4, 1, "deciding decade", "penguin",
-			"00/03/2010", entities.Author{1, "shani", "kumar", "30/04/2001", "sk"}}, http.StatusBadRequest},
+		{desc: "creating a book", body: entities.Book{BookID: 4, AuthorID: 1, Title: "deciding decade",
+			Publication: "penguin", PublishedDate: "20/03/2010", Author: entities.Author{AuthorID: 1, FirstName: "shani",
+				LastName: "kumar", DOB: "30/04/2001", PenName: "sk"}}, targetID: "1",
+			expectedBook: entities.Book{BookID: 4, AuthorID: 1, Title: "deciding decade", Publication: "penguin",
+				PublishedDate: "20/03/2010", Author: entities.Author{AuthorID: 1, FirstName: "shani", LastName: "kumar",
+					DOB: "30/04/2001", PenName: "sk"}}},
+		{desc: "already existing book", body: entities.Book{BookID: 4, AuthorID: 1, Title: "decade",
+			Publication: "penguin", PublishedDate: "20/03/2010", Author: entities.Author{AuthorID: 1, FirstName: "shani",
+				LastName: "kumar", DOB: "30/04/2001", PenName: "sk"}},
+			targetID: "2", expectedBook: entities.Book{BookID: 4, AuthorID: 1, Title: "decade", Publication: "penguin",
+				PublishedDate: "20/03/2010", Author: entities.Author{AuthorID: 1, FirstName: "shani", LastName: "kumar",
+					DOB: "30/04/2001", PenName: "sk"}}},
 	}
 	for _, tc := range testcases {
 		b, err := json.Marshal(tc.body)
@@ -171,14 +169,25 @@ func TestPutBook(t *testing.T) {
 			log.Printf("failed : %v", err)
 		}
 
-		req := httptest.NewRequest("PUT", "localhost:8000/book", bytes.NewBuffer(b))
+		req := httptest.NewRequest("PUT", "localhost:8000/book/{id}"+tc.targetID, bytes.NewBuffer(b))
+		req = mux.SetURLVars(req, map[string]string{"id": tc.targetID})
 		w := httptest.NewRecorder()
 		h := New(mockService{})
 
 		h.PutBook(w, req)
 
 		result := w.Result()
-		if reflect.DeepEqual(tc.expectedStatusCode, result.StatusCode) {
+
+		var book entities.Book
+
+		data, err := io.ReadAll(result.Body)
+		if err != nil {
+			log.Print(err)
+		}
+
+		_ = json.Unmarshal(data, &book)
+
+		if !reflect.DeepEqual(tc.expectedBook, book) {
 			t.Errorf("failed for %s\n", tc.desc)
 		}
 	}
@@ -204,7 +213,7 @@ func TestDeleteBook(t *testing.T) {
 		h.DeleteBook(w, req)
 
 		result := w.Result()
-		if reflect.DeepEqual(tc.expectedStatus, result.StatusCode) {
+		if !reflect.DeepEqual(tc.expectedStatus, result.StatusCode) {
 			t.Errorf("failed for %s\n", tc.desc)
 		}
 	}

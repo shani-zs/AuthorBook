@@ -30,16 +30,13 @@ func (s Store) PostAuthor(author entities.Author) (int, error) {
 		return -1, errors.New("already exits")
 	}
 
-	res, err := s.DB.Exec("insert into author(author_id,first_name,last_name,dob,pen_name)values(?,?,?,?,?)",
+	_, err = s.DB.Exec("insert into author(author_id,first_name,last_name,dob,pen_name)values(?,?,?,?,?)",
 		author.AuthorID, author.FirstName, author.LastName, author.DOB, author.PenName)
 	if err != nil {
 		return -1, err
 	}
 
-	id, _ := res.LastInsertId()
-	author.AuthorID = int(id)
-
-	return int(id), nil
+	return author.AuthorID, nil
 }
 
 // PutAuthor : inserts an author if that does not exist and update author if exists
