@@ -27,6 +27,7 @@ func (s AuthorService) PostAuthor(a entities.Author) (entities.Author, error) {
 	}
 
 	a.AuthorID = id
+
 	return a, nil
 }
 
@@ -60,6 +61,7 @@ func (s AuthorService) PutAuthor(a entities.Author) (entities.Author, error) {
 	}
 
 	a.AuthorID = id
+
 	return a, nil
 }
 

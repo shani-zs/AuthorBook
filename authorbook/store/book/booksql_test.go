@@ -30,7 +30,6 @@ func TestGetAllBook(t *testing.T) {
 	}
 
 	for _, tc := range Testcases {
-
 		DB := driver.Connection()
 		bookStore := New(DB)
 
@@ -41,7 +40,6 @@ func TestGetAllBook(t *testing.T) {
 		}
 	}
 }
-
 func TestGetBookByID(t *testing.T) {
 	Testcases := []struct {
 		desc     string
@@ -57,7 +55,6 @@ func TestGetBookByID(t *testing.T) {
 	}
 
 	for _, tc := range Testcases {
-
 		DB := driver.Connection()
 		bookStore := New(DB)
 
@@ -68,7 +65,6 @@ func TestGetBookByID(t *testing.T) {
 		}
 	}
 }
-
 func TestPostBook(t *testing.T) {
 	testcases := []struct {
 		desc string
@@ -83,46 +79,42 @@ func TestPostBook(t *testing.T) {
 			"20/03/2010", entities.Author{1, "shani", "kumar", "30/04/2001", "sk"}}, errors.New("already existing")},
 	}
 	for _, tc := range testcases {
-
 		DB := driver.Connection()
 		bookStore := New(DB)
 
-		id, err := bookStore.PostBook(tc.body)
+		id, err := bookStore.PostBook(&tc.body)
 
 		if id == 0 && tc.err != err {
 			t.Errorf("failed for %v\n", tc.desc)
 		}
 	}
-
 }
-
 func TestPutBook(t *testing.T) {
 	testcases := []struct {
-		desc string
-		body entities.Book
+		desc     string
+		body     entities.Book
+		targetID int
 
 		expectedErr error
 	}{
 		{"creating a book", entities.Book{4, 1, "deciding decade", "penguin",
-			"20/03/2010", entities.Author{1, "shani", "kumar", "30/04/2001", "sk"}}, nil},
+			"20/03/2010", entities.Author{1, "shani", "kumar", "30/04/2001", "sk"}}, 1, nil},
 
 		{"updating a book", entities.Book{4, 1, "deciding decade", "penguin",
-			"20/03/2010", entities.Author{1, "shani", "kumar", "30/04/2001", "sk"}}, nil},
+			"20/03/2010", entities.Author{1, "shani", "kumar", "30/04/2001", "sk"}}, 2, nil},
 	}
 
 	for _, tc := range testcases {
-
 		DB := driver.Connection()
 		bookStore := New(DB)
 
-		id, err := bookStore.PutBook(tc.body)
+		id, err := bookStore.PutBook(&tc.body, tc.targetID)
 
 		if id == 0 && tc.expectedErr != err {
 			t.Errorf("failed for %v\n", tc.desc)
 		}
 	}
 }
-
 func TestDeleteBook(t *testing.T) {
 	testcases := []struct {
 		desc     string
@@ -144,5 +136,4 @@ func TestDeleteBook(t *testing.T) {
 			t.Errorf("failed for %v\n", tc.desc)
 		}
 	}
-
 }

@@ -22,7 +22,6 @@ func TestPostAuthor(t *testing.T) {
 	}
 
 	for _, tc := range testcases {
-
 		DB := driver.Connection()
 		authorStore := New(DB)
 
@@ -49,9 +48,7 @@ func TestPutAuthor(t *testing.T) {
 		{"exiting author", entities.Author{
 			3, "nilotpal", "mrinal", "20/05/1990", "Dark horse"}, errors.New("existing author")},
 	}
-
 	for _, tc := range testcases {
-
 		DB := driver.Connection()
 		authorStore := New(DB)
 
@@ -61,15 +58,13 @@ func TestPutAuthor(t *testing.T) {
 			t.Errorf("failed for %v\n", tc.desc)
 		}
 	}
-
 }
-
 func TestDeleteAuthor(t *testing.T) {
 	testcases := []struct {
-		//input
+		// input
 		desc   string
 		target int
-		//output
+		// output
 		err error
 	}{
 		{"valid authorId", 4, nil},

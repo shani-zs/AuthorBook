@@ -19,18 +19,15 @@ func TestGetAllBook(t *testing.T) {
 		title         string
 		includeAuthor string
 
-		expectedBooks      []entities.Book
-		expectedStatusCode int
+		expectedBooks []entities.Book
 	}{
 		{"getting all books", "", "", []entities.Book{{1,
 			1, "book one", "scholastic", "20/06/2018", entities.Author{}},
 			{2, 1, "book two", "penguin", "20/08/2018", entities.Author{}}},
-			http.StatusOK},
-		{"getting book with author and particular title", "book+two", "true", []entities.Book{
-			{2, 1, "book two", "penguin", "20/08/2018", entities.Author{1, "shani",
-				"kumar", "30/04/2001", "sk"}}}, http.StatusOK},
-		{"getting book without author", "book+two", "true", []entities.Book{
-			{2, 1, "book two", "penguin", "20/08/2018", entities.Author{}}}, http.StatusOK},
+		},
+		//{"getting book with author and particular title", "book+two", "true", []entities.Book{
+		//	{2, 1, "book two", "penguin", "20/08/2018", entities.Author{1, "shani",
+		//		"kumar", "30/04/2001", "sk"}}}},
 	}
 
 	for _, tc := range Testcases {
@@ -41,6 +38,7 @@ func TestGetAllBook(t *testing.T) {
 		h.GetAllBook(w, req)
 
 		result := w.Result()
+
 		body, err := io.ReadAll(result.Body)
 		if err != nil {
 			log.Print(err)
@@ -49,6 +47,7 @@ func TestGetAllBook(t *testing.T) {
 		var books []entities.Book
 
 		_ = json.Unmarshal(body, &books)
+
 		if reflect.DeepEqual(books, tc.expectedBooks) {
 			t.Errorf("failed for %s\n", tc.desc)
 		}
@@ -65,7 +64,7 @@ func TestGetBookByID(t *testing.T) {
 	}{
 		{"fetching book by id",
 			"1", entities.Book{1, 1, "book two", "penguin", "20/08/2018",
-			entities.Author{1, "shani", "kumar", "30/04/2001", "sk"}}, http.StatusOK},
+				entities.Author{1, "shani", "kumar", "30/04/2001", "sk"}}, http.StatusOK},
 
 		{"invalid id", "-1", entities.Book{}, http.StatusBadRequest},
 	}
@@ -80,6 +79,7 @@ func TestGetBookByID(t *testing.T) {
 
 		result := w.Result()
 		body, err := io.ReadAll(result.Body)
+
 		if err != nil {
 			log.Print(err)
 		}
@@ -87,6 +87,7 @@ func TestGetBookByID(t *testing.T) {
 		var books entities.Book
 
 		_ = json.Unmarshal(body, &books)
+
 		if reflect.DeepEqual(books, tc.expectedBook) {
 			t.Errorf("failed for %s\n", tc.desc)
 		}
@@ -195,7 +196,6 @@ func TestDeleteBook(t *testing.T) {
 	}
 
 	for _, tc := range testcases {
-
 		req := httptest.NewRequest("PUT", "localhost:8000/book/{id}"+tc.targetID, nil)
 		req = mux.SetURLVars(req, map[string]string{"id": tc.targetID})
 		w := httptest.NewRecorder()
@@ -208,5 +208,4 @@ func TestDeleteBook(t *testing.T) {
 			t.Errorf("failed for %s\n", tc.desc)
 		}
 	}
-
 }

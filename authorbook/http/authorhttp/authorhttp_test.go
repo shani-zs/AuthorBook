@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/gorilla/mux"
-	"github.com/stretchr/testify/assert"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -58,11 +57,11 @@ func TestPutAuthor(t *testing.T) {
 		expected int
 	}{
 		{"valid author", entities.Author{
-			4, "nilotpal", "mrinal", "20/05/1990", "Dark horse"}, http.StatusCreated},
+			4, "Shani", "mrinal", "20/05/1970", "Dh"}, http.StatusCreated},
 		{"exiting author", entities.Author{
-			3, "nilotpal", "mrinal", "20/05/1990", "Dark horse"}, http.StatusBadRequest},
+			3, "shani", "mrinal", "20/05/1990", "Dark horse"}, http.StatusBadRequest},
 		{"invalid firstname", entities.Author{
-			3, "nilotpal", "mrinal", "20/05/1990", "Dark horse"}, http.StatusBadRequest},
+			3, "", "mrinal", "20/05/1990", "Dark horse"}, http.StatusBadRequest},
 		{"invalid DOB", entities.Author{
 			3, "nilotpal", "mrinal", "20/00/1990", "Dark horse"}, http.StatusBadRequest},
 		{"nil body", entities.Author{}, http.StatusBadRequest},
@@ -74,7 +73,7 @@ func TestPutAuthor(t *testing.T) {
 			log.Print(err)
 		}
 
-		req := httptest.NewRequest("POST", "localhost:8000/author", bytes.NewReader(data))
+		req := httptest.NewRequest("PUT", "localhost:8000/author", bytes.NewReader(data))
 		w := httptest.NewRecorder()
 		h := New(mockService{})
 
@@ -89,10 +88,9 @@ func TestPutAuthor(t *testing.T) {
 
 func TestDeleteAuthor(t *testing.T) {
 	testcases := []struct {
-		//input
 		desc   string
 		target string
-		//output
+
 		expected int
 	}{
 		{"valid authorId", "4", http.StatusNoContent},
@@ -111,36 +109,31 @@ func TestDeleteAuthor(t *testing.T) {
 		if tc.expected != res.StatusCode {
 			t.Errorf("failed for %v\n", tc.desc)
 		}
-		assert.Equal(t, tc.expected, res.StatusCode)
 	}
 }
 
 type mockService struct{}
 
 func (h mockService) PutAuthor(author2 entities.Author) (entities.Author, error) {
-	//TODO implement me
 	if author2.AuthorID == 4 {
 		return entities.Author{}, nil
-	} else {
-		return entities.Author{}, errors.New("invalid constraints")
 	}
+
+	return entities.Author{}, errors.New("invalid constraints")
 }
 
 func (h mockService) DeleteAuthor(id int) (int, error) {
-	//TODO implement me
 	if id == 4 {
 		return id, nil
-	} else {
-		return -1, errors.New("invalid")
 	}
 
+	return -1, errors.New("invalid")
 }
 
 func (h mockService) PostAuthor(author2 entities.Author) (entities.Author, error) {
-	//TODO implement me
 	if author2.AuthorID == 4 {
 		return entities.Author{}, nil
-	} else {
-		return entities.Author{}, errors.New("invalid constraints")
 	}
+
+	return entities.Author{}, errors.New("invalid constraints")
 }

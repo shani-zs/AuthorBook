@@ -26,8 +26,8 @@ func TestPostAuthor(t *testing.T) {
 	}
 
 	for _, tc := range testcases {
-
 		m := New(mockStore{})
+
 		id, err := m.PostAuthor(tc.body)
 		if err != nil {
 			log.Print(err)
@@ -61,8 +61,8 @@ func TestPutAuthor(t *testing.T) {
 	}
 
 	for _, tc := range testcases {
-
 		m := New(mockStore{})
+
 		a, err := m.PutAuthor(tc.body)
 		if err != nil {
 			log.Print(err)
@@ -76,10 +76,9 @@ func TestPutAuthor(t *testing.T) {
 
 func TestDeleteAuthor(t *testing.T) {
 	testcases := []struct {
-		//input
 		desc   string
 		target int
-		//output
+
 		expectedID int
 	}{
 		{"valid authorId", 4, 4},
@@ -87,7 +86,6 @@ func TestDeleteAuthor(t *testing.T) {
 	}
 
 	for _, tc := range testcases {
-
 		m := New(mockStore{})
 
 		id, err := m.DeleteAuthor(tc.target)
@@ -107,24 +105,23 @@ type mockStore struct{}
 func (m mockStore) PostAuthor(author2 entities.Author) (int, error) {
 	if author2.AuthorID == 4 {
 		return author2.AuthorID, nil
-	} else {
-		return -1, errors.New("invalid")
 	}
+
+	return -1, errors.New("invalid")
 }
 
 func (m mockStore) PutAuthor(author2 entities.Author) (int, error) {
-
 	if author2.AuthorID == 4 {
 		return author2.AuthorID, nil
-	} else {
-		return -1, errors.New("invalid")
 	}
+
+	return -1, errors.New("invalid")
 }
 
 func (m mockStore) DeleteAuthor(id int) (int, error) {
 	if id <= 0 {
 		return -1, nil
-	} else {
-		return id, nil
 	}
+
+	return id, nil
 }

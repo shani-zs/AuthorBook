@@ -11,7 +11,7 @@ type AuthorService interface {
 type BookService interface {
 	GetAllBook(string, string) []entities.Book
 	GetBookByID(int) (entities.Book, error)
-	PostBook(book entities.Book) (entities.Book, error)
-	PutBook(book entities.Book, id int) (entities.Book, error)
+	PostBook(book *entities.Book) (entities.Book, error)
+	PutBook(book *entities.Book, id int) (entities.Book, error)
 	DeleteBook(int) (int, error)
 }

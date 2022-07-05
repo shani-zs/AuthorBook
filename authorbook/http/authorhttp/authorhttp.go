@@ -11,31 +11,31 @@ import (
 	"strconv"
 )
 
-type authorHandler struct {
+type AuthorHandler struct {
 	authorService service.AuthorService
 }
 
-func New(a service.AuthorService) authorHandler {
-	return authorHandler{a}
+func New(a service.AuthorService) AuthorHandler {
+	return AuthorHandler{a}
 }
 
-func (h authorHandler) PostAuthor(w http.ResponseWriter, req *http.Request) {
+func (h AuthorHandler) PostAuthor(w http.ResponseWriter, req *http.Request) {
 	var author entities.Author
 
 	body, _ := io.ReadAll(req.Body)
-	err := json.Unmarshal(body, &author)
+	_ = json.Unmarshal(body, &author)
 
-	_, err = h.authorService.PostAuthor(author)
+	_, err := h.authorService.PostAuthor(author)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("successful posted!"))
+	_, _ = w.Write([]byte("successful posted!"))
 }
 
-func (h authorHandler) PutAuthor(w http.ResponseWriter, req *http.Request) {
+func (h AuthorHandler) PutAuthor(w http.ResponseWriter, req *http.Request) {
 	var author entities.Author
 
 	body, _ := io.ReadAll(req.Body)
@@ -48,10 +48,10 @@ func (h authorHandler) PutAuthor(w http.ResponseWriter, req *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	fmt.Fprintf(w, "sucessful posted!")
+	fmt.Fprintf(w, "successful posted!")
 }
 
-func (h authorHandler) DeleteAuthor(w http.ResponseWriter, req *http.Request) {
+func (h AuthorHandler) DeleteAuthor(w http.ResponseWriter, req *http.Request) {
 	params := mux.Vars(req)
 	id, _ := strconv.Atoi(params["id"])
 
@@ -64,5 +64,5 @@ func (h authorHandler) DeleteAuthor(w http.ResponseWriter, req *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
-	w.Write([]byte("successfully deleted!"))
+	_, _ = w.Write([]byte("successfully deleted!"))
 }

@@ -14,7 +14,7 @@ func New(s store.BookStorer) BookService {
 	return BookService{s}
 }
 
-func (bs BookService) GetAllBook(title string, includeAuthor string) []entities.Book {
+func (bs BookService) GetAllBook(title, includeAuthor string) []entities.Book {
 	books := bs.bookService.GetAllBook(title, includeAuthor)
 	return books
 }
@@ -23,11 +23,13 @@ func (bs BookService) GetBookByID(id int) (entities.Book, error) {
 	if id <= 0 {
 		return entities.Book{}, nil
 	}
+
 	book := bs.bookService.GetBookByID(id)
+
 	return book, nil
 }
 
-func (bs BookService) PostBook(book entities.Book) (entities.Book, error) {
+func (bs BookService) PostBook(book *entities.Book) (entities.Book, error) {
 	if book.Title == "" || book.AuthorID < 0 || checkPublication(book.Publication) {
 		return entities.Book{}, nil
 	}
@@ -38,10 +40,11 @@ func (bs BookService) PostBook(book entities.Book) (entities.Book, error) {
 	}
 
 	book.BookID = id
-	return book, nil
+
+	return *book, nil
 }
 
-func (bs BookService) PutBook(book entities.Book, id int) (entities.Book, error) {
+func (bs BookService) PutBook(book *entities.Book, id int) (entities.Book, error) {
 	if book.Title == "" || book.AuthorID <= 0 || checkPublication(book.Publication) {
 		return entities.Book{}, nil
 	}
@@ -52,13 +55,15 @@ func (bs BookService) PutBook(book entities.Book, id int) (entities.Book, error)
 	}
 
 	book.BookID = i
-	return book, nil
+
+	return *book, nil
 }
 
 func (bs BookService) DeleteBook(id int) (int, error) {
 	if id < 0 {
 		return -1, nil
 	}
+
 	i, err := bs.bookService.DeleteBook(id)
 	if err != nil || i == -1 {
 		return -1, err

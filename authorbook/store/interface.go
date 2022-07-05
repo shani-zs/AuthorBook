@@ -11,7 +11,7 @@ type AuthorStorer interface {
 type BookStorer interface {
 	GetAllBook(string2 string, string3 string) []entities.Book
 	GetBookByID(int) entities.Book
-	PostBook(book entities.Book) (int, error)
-	PutBook(book entities.Book, id int) (int, error)
+	PostBook(book *entities.Book) (int, error)
+	PutBook(book *entities.Book, id int) (int, error)
 	DeleteBook(int) (int, error)
 }

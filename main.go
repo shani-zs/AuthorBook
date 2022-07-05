@@ -6,8 +6,6 @@ import (
 	"projects/GoLang-Interns-2022/authorbook/service/bookservice"
 	"projects/GoLang-Interns-2022/authorbook/store/book"
 
-	//"github.com/gorilla/mux"
-	"log"
 	"net/http"
 	"projects/GoLang-Interns-2022/authorbook/driver"
 	"projects/GoLang-Interns-2022/authorbook/http/authorhttp"
@@ -39,5 +37,5 @@ func main() {
 	r.HandleFunc("/book/{id}", bookHandler.PutBook).Methods("PUT")
 	r.HandleFunc("/book/{id}", bookHandler.DeleteBook).Methods("DELETE")
 
-	log.Fatal(http.ListenAndServe(":8000", r))
+	_ = http.ListenAndServe(":8000", r)
 }
