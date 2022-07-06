@@ -48,6 +48,13 @@ func (bs Store) GetBookByID(id int) entities.Book {
 }
 
 func (bs Store) PostBook(book *entities.Book) (int, error) {
+	// checking the author existing in the table table or not
+	authorID, _ := FetchingAuthor(book.AuthorID, bs.DB)
+
+	if authorID != book.AuthorID {
+		return -1, errors.New("author dose not exist")
+	}
+
 	result, err := bs.DB.Exec("insert into book(author_id,title,publication,published_date)values(?,?,?,?)",
 		book.AuthorID, book.Title, book.Publication, book.PublishedDate)
 	if err != nil {

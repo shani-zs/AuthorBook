@@ -119,7 +119,7 @@ func TestDeleteAuthor(t *testing.T) {
 
 type mockService struct{}
 
-func (h mockService) PutAuthor(author2 entities.Author) (entities.Author, error) {
+func (h mockService) PutAuthor(author2 entities.Author, id int) (entities.Author, error) {
 	if author2.AuthorID == 4 {
 		return entities.Author{}, nil
 	}

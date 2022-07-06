@@ -50,13 +50,13 @@ func checkDob(dob string) bool {
 }
 
 // PutAuthor : business logic of putathor
-func (s AuthorService) PutAuthor(a entities.Author) (entities.Author, error) {
+func (s AuthorService) PutAuthor(a entities.Author, id int) (entities.Author, error) {
 	if a.FirstName == "" || !checkDob(a.DOB) {
 		return entities.Author{}, nil
 	}
 
-	id, err := s.datastore.PutAuthor(a)
-	if err != nil || id == -1 {
+	id, err := s.datastore.PutAuthor(a, id)
+	if err != nil || id <= 0 {
 		return entities.Author{}, err
 	}
 

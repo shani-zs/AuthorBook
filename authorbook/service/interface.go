@@ -4,7 +4,7 @@ import "projects/GoLang-Interns-2022/authorbook/entities"
 
 type AuthorService interface {
 	PostAuthor(entities.Author) (entities.Author, error)
-	PutAuthor(entities.Author) (entities.Author, error)
+	PutAuthor(entities.Author, int) (entities.Author, error)
 	DeleteAuthor(int) (int, error)
 }
 

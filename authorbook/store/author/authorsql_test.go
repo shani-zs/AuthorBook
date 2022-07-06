@@ -1,60 +1,91 @@
 package author
 
 import (
-	"projects/GoLang-Interns-2022/authorbook/driver"
+	"errors"
+	"log"
 	"projects/GoLang-Interns-2022/authorbook/entities"
 	"testing"
+
+	"github.com/DATA-DOG/go-sqlmock"
 )
 
 func TestPostAuthor(t *testing.T) {
+
 	testcases := []struct {
 		desc string
 		body entities.Author
 
-		expectedID int
+		expectedErr  error
+		RowAffected  int64
+		LastInserted int64
 	}{
 		{desc: "valid author", body: entities.Author{
-			AuthorID: 5, FirstName: "nilotpalx", LastName: "mrinal", DOB: "20/05/1990", PenName: "Dark horse"},
-			expectedID: 5},
+			AuthorID: 11, FirstName: "vinod", LastName: "pal", DOB: "20/05/1990", PenName: "Dh"},
+			expectedErr: nil, RowAffected: 1, LastInserted: 11},
 		{desc: "exiting author", body: entities.Author{
 			AuthorID: 1, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/05/1990", PenName: "Dark horse"},
-			expectedID: -1},
+			expectedErr: errors.New("already exists"), RowAffected: 0, LastInserted: 0},
 	}
 
+	db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+	if err != nil {
+		t.Fatalf("error during the opening of database:%v\n", err)
+	}
+
+	defer db.Close()
+
 	for _, tc := range testcases {
-		DB := driver.Connection()
-		authorStore := New(DB)
+		mock.ExpectExec("insert into author(author_id,first_name,last_name,dob,pen_name)values(?,?,?,?,?)").
+			WithArgs(tc.body.AuthorID, tc.body.FirstName, tc.body.LastName,
+				tc.body.DOB, tc.body.PenName).WillReturnResult(sqlmock.NewResult(tc.LastInserted, tc.RowAffected)).
+			WillReturnError(tc.expectedErr)
 
-		id, _ := authorStore.PostAuthor(tc.body)
+		s := New(db)
+		_, err = s.PostAuthor(tc.body)
 
-		if id != tc.expectedID {
-			t.Errorf("failed for %v\n", tc.desc)
+		if err != tc.expectedErr {
+			t.Errorf("failed for %s", tc.desc)
 		}
 	}
 }
 func TestPutAuthor(t *testing.T) {
 	testcases := []struct {
-		desc string
-		body entities.Author
+		desc         string
+		body         entities.Author
+		id           int
+		RowAffected  int64
+		LastInserted int64
 
-		expected int
+		expectedErr error
 	}{
-		{desc: "valid author", body: entities.Author{
-			AuthorID: 4, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/05/1990", PenName: "Dark horse"},
-			expected: -1},
+		{desc: "invalid author", body: entities.Author{
+			AuthorID: 4, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/05/1990", PenName: "Dark horse"}, id: 20,
+			RowAffected: 0, LastInserted: 0, expectedErr: errors.New("does not exist")},
 		{desc: "exiting author", body: entities.Author{
-			AuthorID: 3, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/05/1990", PenName: "Dark horse"},
-			expected: -1},
+			AuthorID: 3, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/05/1990", PenName: "Dark horse"}, id: 4,
+			RowAffected: 1, LastInserted: 0, expectedErr: nil},
 	}
+
 	for _, tc := range testcases {
-		DB := driver.Connection()
-		authorStore := New(DB)
-
-		id, _ := authorStore.PostAuthor(tc.body)
-
-		if id != tc.expected {
-			t.Errorf("failed for %v\n", tc.desc)
+		db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+		if err != nil {
+			log.Print(err)
 		}
+		s := New(db)
+
+		mock.ExpectExec("select count(author_id) from author where author_id=?").WithArgs(tc.id).
+			WillReturnResult(sqlmock.NewResult(tc.LastInserted, tc.RowAffected)).WillReturnError(tc.expectedErr)
+
+		mock.ExpectExec("update author set author_id=?,first_name=?,last_name=?,dob=?,pen_name=? where author_id=?").
+			WithArgs(tc.body.AuthorID, tc.body.FirstName, tc.body.LastName, tc.body.DOB, tc.body.PenName, tc.id).
+			WillReturnResult(sqlmock.NewResult(tc.LastInserted, tc.RowAffected)).WillReturnError(tc.expectedErr)
+
+		_, err = s.PutAuthor(tc.body, tc.id)
+
+		if err != tc.expectedErr {
+			t.Errorf("failed for %v\n, expected: %v, got: %v", tc.desc, tc.expectedErr, err)
+		}
+		db.Close()
 	}
 }
 func TestDeleteAuthor(t *testing.T) {
@@ -63,19 +94,25 @@ func TestDeleteAuthor(t *testing.T) {
 		desc   string
 		target int
 		// output
-		expected int
+		rowsAffected   int64
+		lastInsertedID int64
+		expectedErr    error
 	}{
-		{"valid authorId", 4, 1},
-		{"invalid authorId", -1, 0},
+		{"valid authorId", 4, 1, 0, nil},
+		{"invalid authorId", -1, 0, 0, errors.New("invalid authorID")},
 	}
 
 	for _, tc := range testcases {
-		DB := driver.Connection()
-		authorStore := New(DB)
+		db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+		if err != nil {
+			log.Print(err)
+		}
+		s := New(db)
 
-		count, _ := authorStore.DeleteAuthor(tc.target)
-
-		if count != tc.expected {
+		mock.ExpectExec("delete from author where author_id=?").WithArgs(tc.target).
+			WillReturnResult(sqlmock.NewResult(tc.lastInsertedID, tc.rowsAffected)).WillReturnError(tc.expectedErr)
+		_, err = s.DeleteAuthor(tc.target)
+		if err != tc.expectedErr {
 			t.Errorf("failed for %v\n", tc.desc)
 		}
 	}

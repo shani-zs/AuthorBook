@@ -42,7 +42,10 @@ func (h AuthorHandler) PutAuthor(w http.ResponseWriter, req *http.Request) {
 	body, _ := io.ReadAll(req.Body)
 	_ = json.Unmarshal(body, &author)
 
-	_, err := h.authorService.PutAuthor(author)
+	params := mux.Vars(req)
+	id, _ := strconv.Atoi(params["id"])
+
+	_, err := h.authorService.PutAuthor(author, id)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return

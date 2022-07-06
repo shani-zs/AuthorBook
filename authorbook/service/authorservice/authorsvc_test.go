@@ -64,7 +64,7 @@ func TestPutAuthor(t *testing.T) {
 	for _, tc := range testcases {
 		m := New(mockStore{})
 
-		a, err := m.PutAuthor(tc.body)
+		a, err := m.PutAuthor(tc.body, tc.body.AuthorID)
 		if err != nil {
 			log.Print(err)
 		}
@@ -111,7 +111,7 @@ func (m mockStore) PostAuthor(author2 entities.Author) (int, error) {
 	return -1, errors.New("invalid")
 }
 
-func (m mockStore) PutAuthor(author2 entities.Author) (int, error) {
+func (m mockStore) PutAuthor(author2 entities.Author, id int) (int, error) {
 	if author2.AuthorID == 4 {
 		return author2.AuthorID, nil
 	}

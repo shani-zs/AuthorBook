@@ -42,10 +42,10 @@ func main() {
 	r.HandleFunc("/book/{id}", bookHandler.PutBook).Methods("PUT")
 	r.HandleFunc("/book/{id}", bookHandler.DeleteBook).Methods("DELETE")
 
-	fmt.Println("server started..")
-
 	err := http.ListenAndServe(":8000", r)
 	if err != nil {
 		log.Print(err)
 	}
+
+	fmt.Println("server started..")
 }
