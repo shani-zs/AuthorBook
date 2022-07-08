@@ -1,6 +1,7 @@
 package authorservice
 
 import (
+	"errors"
 	"projects/GoLang-Interns-2022/authorbook/entities"
 	"projects/GoLang-Interns-2022/authorbook/store"
 	"strconv"
@@ -18,7 +19,7 @@ func New(s store.AuthorStorer) AuthorService {
 
 func (s AuthorService) PostAuthor(a entities.Author) (entities.Author, error) {
 	if a.FirstName == "" || !checkDob(a.DOB) {
-		return entities.Author{}, nil
+		return entities.Author{}, errors.New("invalid constraints")
 	}
 
 	id, err := s.datastore.PostAuthor(a)
@@ -29,6 +30,36 @@ func (s AuthorService) PostAuthor(a entities.Author) (entities.Author, error) {
 	a.AuthorID = id
 
 	return a, nil
+}
+
+// PutAuthor : business logic of putauthor
+func (s AuthorService) PutAuthor(a entities.Author, id int) (entities.Author, error) {
+	if a.FirstName == "" || !checkDob(a.DOB) {
+		return entities.Author{}, nil
+	}
+
+	i, err := s.datastore.PutAuthor(a, id)
+	if err != nil || i <= 0 {
+		return entities.Author{}, err
+	}
+
+	a.AuthorID = i
+
+	return a, nil
+}
+
+// DeleteAuthor : Deletes the author at particular id
+func (s AuthorService) DeleteAuthor(id int) (int, error) {
+	if id < 0 {
+		return 0, nil
+	}
+
+	countRows, err := s.datastore.DeleteAuthor(id)
+	if err != nil || countRows <= 0 {
+		return 0, err
+	}
+
+	return countRows, nil
 }
 
 func checkDob(dob string) bool {
@@ -47,34 +78,4 @@ func checkDob(dob string) bool {
 	}
 
 	return true
-}
-
-// PutAuthor : business logic of putathor
-func (s AuthorService) PutAuthor(a entities.Author, id int) (entities.Author, error) {
-	if a.FirstName == "" || !checkDob(a.DOB) {
-		return entities.Author{}, nil
-	}
-
-	id, err := s.datastore.PutAuthor(a, id)
-	if err != nil || id <= 0 {
-		return entities.Author{}, err
-	}
-
-	a.AuthorID = id
-
-	return a, nil
-}
-
-// DeleteAuthor : Deletes the author at particular id
-func (s AuthorService) DeleteAuthor(id int) (int, error) {
-	if id < 0 {
-		return -1, nil
-	}
-
-	count, err := s.datastore.DeleteAuthor(id)
-	if err != nil || count <= 0 {
-		return -1, err
-	}
-
-	return count, nil
 }

@@ -2,69 +2,98 @@ package authorservice
 
 import (
 	"errors"
+	"github.com/golang/mock/gomock"
 	"log"
 	"projects/GoLang-Interns-2022/authorbook/entities"
+	"projects/GoLang-Interns-2022/authorbook/store"
 	"testing"
 )
 
 func TestPostAuthor(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	mockStore := store.NewMockAuthorStorer(ctrl)
+	mock := New(mockStore) //defining the type of interface
+
 	testcases := []struct {
 		desc string
 		body entities.Author
 
-		expected entities.Author
+		expectedAuthor entities.Author
+		expectedID     int
+		expectedErr    error
 	}{
 		{desc: "valid author", body: entities.Author{
 			AuthorID: 4, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/05/1990", PenName: "Dark horse"},
-			expected: entities.Author{AuthorID: 4, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/05/1990",
-				PenName: "Dark horse"}},
+			expectedAuthor: entities.Author{AuthorID: 4, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/05/1990",
+				PenName: "Dark horse"}, expectedID: 4, expectedErr: nil},
+
 		{desc: "existing author", body: entities.Author{
-			AuthorID: 3, FirstName: "nilotpal", LastName: "mrinal", DOB: "00/05/1990", PenName: "Dark horse"}},
+			AuthorID: 4, FirstName: "nilotpal", LastName: "mrinal", DOB: "01/05/1990", PenName: "Dark horse"},
+			expectedAuthor: entities.Author{}, expectedID: -1, expectedErr: errors.New("already exists")},
+
 		{desc: "invalid firstname", body: entities.Author{
-			AuthorID: 3, FirstName: " ", LastName: "mrinal", DOB: "20/00/1990", PenName: "Dark horse"}},
+			AuthorID: 5, FirstName: "", LastName: "mrinal", DOB: "20/01/1990", PenName: "Dark horse"},
+			expectedAuthor: entities.Author{}, expectedID: -1, expectedErr: errors.New("invalid constraints")},
+
 		{desc: "invalid DOB", body: entities.Author{
-			AuthorID: 3, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/01/0", PenName: "Dark horse"}},
+			AuthorID: 5, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/01/0", PenName: "Dark horse"},
+			expectedAuthor: entities.Author{}, expectedID: -1, expectedErr: errors.New("invalid constraints")},
 	}
 
 	for _, tc := range testcases {
-		m := New(mockStore{})
+		if tc.body.AuthorID != 5 {
+			mockStore.EXPECT().PostAuthor(tc.body).Return(tc.expectedID, tc.expectedErr)
+		}
 
-		id, err := m.PostAuthor(tc.body)
+		a, err := mock.PostAuthor(tc.body)
 		if err != nil {
 			log.Print(err)
 		}
 
-		if id != tc.expected {
+		if a != tc.expectedAuthor {
 			t.Errorf("failed for %v\n", tc.desc)
 		}
 	}
 }
 
 func TestPutAuthor(t *testing.T) {
-	testcases := []struct {
-		desc string
-		body entities.Author
+	ctrl := gomock.NewController(t)
+	mockStore := store.NewMockAuthorStorer(ctrl)
+	mock := New(mockStore)
 
-		expected entities.Author
+	testcases := []struct {
+		desc     string
+		body     entities.Author
+		targetID int
+
+		expected    entities.Author
+		expectedErr error
 	}{
-		{desc: "valid author", body: entities.Author{
-			AuthorID: 4, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/05/1990", PenName: "Dark horse"},
-			expected: entities.Author{AuthorID: 4, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/05/1990",
-				PenName: "Dark horse"}},
 		{desc: "existing author", body: entities.Author{
-			AuthorID: 3, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/05/1990", PenName: "Dark horse"}},
+			AuthorID: 4, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/05/1990", PenName: "Dark horse"},
+			targetID: 5, expected: entities.Author{AuthorID: 4, FirstName: "nilotpal", LastName: "mrinal",
+				DOB: "20/05/1990", PenName: "Dark horse"}, expectedErr: nil,
+		},
+		{desc: "not existing author", body: entities.Author{
+			AuthorID: 4, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/05/1990", PenName: "Dark horse"},
+			targetID: 5, expected: entities.Author{}, expectedErr: errors.New("already exist"),
+		},
 		{desc: "invalid firstname", body: entities.Author{
-			AuthorID: 3, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/05/1990", PenName: "Dark horse"}},
+			AuthorID: 3, FirstName: "", LastName: "mrinal", DOB: "20/05/1990", PenName: "Dark horse"},
+			targetID: 5, expected: entities.Author{}, expectedErr: errors.New("invalid constraints"),
+		},
 		{desc: "invalid DOB", body: entities.Author{
-			AuthorID: 3, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/00/1990", PenName: "Dark horse"}},
-		{desc: "valid author", body: entities.Author{
-			AuthorID: 5, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/05/1990", PenName: "Dark horse"}},
+			AuthorID: 3, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/00/1990", PenName: "Dark horse"},
+			targetID: 5, expected: entities.Author{}, expectedErr: errors.New("invalid constraints"),
+		},
 	}
 
 	for _, tc := range testcases {
-		m := New(mockStore{})
+		if tc.body.AuthorID == 4 {
+			mockStore.EXPECT().PutAuthor(tc.body, tc.targetID).Return(tc.body.AuthorID, tc.expectedErr)
+		}
 
-		a, err := m.PutAuthor(tc.body, tc.body.AuthorID)
+		a, err := mock.PutAuthor(tc.body, tc.targetID)
 		if err != nil {
 			log.Print(err)
 		}
@@ -76,26 +105,32 @@ func TestPutAuthor(t *testing.T) {
 }
 
 func TestDeleteAuthor(t *testing.T) {
-	testcases := []struct {
-		desc   string
-		target int
+	ctrl := gomock.NewController(t)
+	mockStore := store.NewMockAuthorStorer(ctrl)
+	mock := New(mockStore)
 
-		expectedID int
+	testcases := []struct {
+		desc     string
+		targetID int
+
+		expectedRowsAffected int
+		expectedErr          error
 	}{
-		{"valid authorId", 4, 4},
-		{"invalid authorId", -1, -1},
+		{"valid authorId", 4, 1, nil},
+		{"invalid authorId", -1, 0, errors.New("invalid id")},
 	}
 
 	for _, tc := range testcases {
-		m := New(mockStore{})
-
-		id, err := m.DeleteAuthor(tc.target)
+		if tc.targetID == 4 {
+			mockStore.EXPECT().DeleteAuthor(tc.targetID).Return(tc.expectedRowsAffected, tc.expectedErr)
+		}
+		id, err := mock.DeleteAuthor(tc.targetID)
 
 		if err != nil {
 			log.Print(err)
 		}
 
-		if id != tc.expectedID {
+		if id != tc.expectedRowsAffected {
 			t.Errorf("failed for %v\n", tc.desc)
 		}
 	}
