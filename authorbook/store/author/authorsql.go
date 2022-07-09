@@ -1,6 +1,7 @@
 package author
 
 import (
+	"context"
 	"database/sql"
 	"log"
 	"projects/GoLang-Interns-2022/authorbook/entities"
@@ -14,9 +15,9 @@ func New(db *sql.DB) Store {
 	return Store{db}
 }
 
-// PostAuthor : insert an author
-func (s Store) PostAuthor(author entities.Author) (int, error) {
-	_, err := s.DB.Exec("insert into author(author_id,first_name,last_name,dob,pen_name)values(?,?,?,?,?)",
+// Post : insert an author
+func (s Store) Post(ctx context.Context, author entities.Author) (int, error) {
+	_, err := s.DB.ExecContext(ctx, "insert into authorhttp(author_id,first_name,last_name,dob,pen_name)values(?,?,?,?,?)",
 		author.AuthorID, author.FirstName, author.LastName, author.DOB, author.PenName)
 	if err != nil {
 		log.Print(err)
@@ -26,9 +27,9 @@ func (s Store) PostAuthor(author entities.Author) (int, error) {
 	return author.AuthorID, nil
 }
 
-// PutAuthor : inserts an author if that does not exist and update author if exists
-func (s Store) PutAuthor(author entities.Author, id int) (int, error) {
-	res, err := s.DB.Exec("select count(author_id) from author where author_id=?", id)
+// Put : inserts an author if that does not exist and update author if exists
+func (s Store) Put(ctx context.Context, author entities.Author, id int) (int, error) {
+	res, err := s.DB.ExecContext(ctx, "select count(author_id) from authorhttp where author_id=?", id)
 	if err != nil {
 		log.Print(err)
 		return -1, err
@@ -36,7 +37,7 @@ func (s Store) PutAuthor(author entities.Author, id int) (int, error) {
 
 	rA, _ := res.RowsAffected()
 	if rA > 0 {
-		res, err := s.DB.Exec("update author set author_id=?,first_name=?,last_name=?,dob=?,pen_name=? where author_id=?",
+		res, err := s.DB.ExecContext(ctx, "update authorhttp set author_id=?,first_name=?,last_name=?,dob=?,pen_name=? where author_id=?",
 			author.AuthorID, author.FirstName, author.LastName, author.DOB, author.PenName, id)
 		if err != nil {
 			log.Print(err)
@@ -52,11 +53,11 @@ func (s Store) PutAuthor(author entities.Author, id int) (int, error) {
 	return -1, err
 }
 
-// DeleteAuthor :  deletes an author
-func (s Store) DeleteAuthor(id int) (int, error) {
-	res, err := s.DB.Exec("delete from author where author_id=?", id)
+// Delete :  deletes an authorhttp
+func (s Store) Delete(ctx context.Context, id int) (int, error) {
+	res, err := s.DB.Exec("delete from authorhttp where author_id=?", id)
 	if err != nil {
-		return -1, err
+		return 0, err
 	}
 
 	count, err := res.RowsAffected()

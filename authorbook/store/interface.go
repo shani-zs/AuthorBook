@@ -1,17 +1,23 @@
 package store
 
-import "projects/GoLang-Interns-2022/authorbook/entities"
+import (
+	"context"
+	"projects/GoLang-Interns-2022/authorbook/entities"
+)
 
 type AuthorStorer interface {
-	PostAuthor(entities.Author) (int, error)
-	PutAuthor(entities.Author, int) (int, error)
-	DeleteAuthor(int) (int, error)
+	Post(ctx context.Context, author entities.Author) (int, error)
+	Put(ctx context.Context, author entities.Author, id int) (int, error)
+	Delete(ctx context.Context, id int) (int, error)
 }
 
 type BookStorer interface {
-	GetAllBook(string2 string, string3 string) []entities.Book
-	GetBookByID(int) entities.Book
-	PostBook(book *entities.Book) (int, error)
-	PutBook(book *entities.Book, id int) (int, error)
-	DeleteBook(int) (int, error)
+	GetAllBook(ctx context.Context) ([]entities.Book, error)
+	GetBooksByTitle(ctx context.Context, title string) ([]entities.Book, error)
+	IncludeAuthor(ctx context.Context, id int) (entities.Author, error)
+
+	GetBookByID(ctx context.Context, id int) (entities.Book, error)
+	Post(ctx context.Context, book *entities.Book) (int, error)
+	Put(ctx context.Context, book *entities.Book, id int) (int, error)
+	Delete(ctx context.Context, id int) (int, error)
 }

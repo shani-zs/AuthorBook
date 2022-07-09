@@ -8,8 +8,9 @@ USE  AuthorBook;
      title varchar(50),
      publication varchar(50),
      published_date varchar(50),
-     PRIMARY KEY(id)),
-     FOREIGN KEY(author_id)REFERENCES author(author_id));
+     PRIMARY KEY(id),
+     FOREIGN KEY(author_id)REFERENCES author(author_id)
+     );
 
 CREATE TABLE author(
     author_id int not null AUTO_INCREMENT,

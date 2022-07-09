@@ -1,40 +1,50 @@
 package book
 
 import (
+	"context"
+	"github.com/DATA-DOG/go-sqlmock"
+	"log"
 	"projects/GoLang-Interns-2022/authorbook/driver"
 	"projects/GoLang-Interns-2022/authorbook/entities"
-	"reflect"
 	"testing"
 )
 
 func TestGetAllBook(t *testing.T) {
 	Testcases := []struct {
-		desc          string
-		title         string
-		includeAuthor string
+		desc string
 
-		expected []entities.Book
+		expected    []entities.Book
+		expectedErr error
 	}{
-		{desc: "getting all books", title: "", includeAuthor: "", expected: []entities.Book{{BookID: 1,
+		{desc: "getting all books", expected: []entities.Book{{BookID: 1,
 			AuthorID: 1, Title: "book one", Publication: "penguin", PublishedDate: "20/06/2000",
-			Author: entities.Author{}},
-		}},
-		{desc: "getting book with author and particular title", title: "book one", includeAuthor: "true",
+			Author: entities.Author{}}}, expectedErr: nil,
+		},
+		{desc: "getting book with author and particular title",
 			expected: []entities.Book{{BookID: 1, AuthorID: 1, Title: "book one", Publication: "penguin",
 				PublishedDate: "20/06/2000", Author: entities.Author{AuthorID: 1, FirstName: "shani",
-					LastName: "kumar", DOB: "30/04/1980", PenName: "jack"}}},
+					LastName: "kumar", DOB: "30/04/1980", PenName: "jack"}}}, expectedErr: nil,
 		},
 	}
 
+	var (
+		book1=
+		books = sqlmock.NewRows([]string{"id", "author_id", "title", "publication", "published_date"}).
+			AddRow()
+	)
+
 	for _, tc := range Testcases {
-		DB := driver.Connection()
-		bookStore := New(DB)
-
-		books := bookStore.GetAllBook(tc.title, tc.includeAuthor)
-
-		if !reflect.DeepEqual(books, tc.expected) {
-			t.Errorf("failed for %v\n", tc.desc)
+		db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+		if err != nil {
+			log.Print(err)
 		}
+		mock.ExpectExec("")
+		bs := New(db)
+		books, err := bs.GetAllBook(context.TODO())
+		if err != nil {
+			log.Print(err)
+		}
+
 	}
 }
 func TestGetBookByID(t *testing.T) {
@@ -46,7 +56,7 @@ func TestGetBookByID(t *testing.T) {
 	}{
 		{desc: "fetching book by id",
 			targetID: 1, expected: entities.Book{BookID: 1,
-				AuthorID: 1, Title: "book one", Publication: "penguin", PublishedDate: "20/06/2000"}},
+			AuthorID: 1, Title: "book one", Publication: "penguin", PublishedDate: "20/06/2000"}},
 
 		{"invalid id", -1, entities.Book{}},
 	}
@@ -81,7 +91,7 @@ func TestPostBook(t *testing.T) {
 		DB := driver.Connection()
 		bookStore := New(DB)
 
-		_, err := bookStore.PostBook(&tc.body)
+		_, err := bookStore.Post(&tc.body)
 
 		if tc.err != err {
 			t.Errorf("failed for %v\n", tc.desc)
@@ -109,7 +119,7 @@ func TestPutBook(t *testing.T) {
 		DB := driver.Connection()
 		bookStore := New(DB)
 
-		_, err := bookStore.PutBook(&tc.body, tc.targetID)
+		_, err := bookStore.Put(&tc.body, tc.targetID)
 
 		if tc.expectedErr != err {
 			t.Errorf("failed for %v\n", tc.desc)
@@ -131,7 +141,7 @@ func TestDeleteBook(t *testing.T) {
 		DB := driver.Connection()
 		bookStore := New(DB)
 
-		id, _ := bookStore.DeleteBook(tc.targetID)
+		id, _ := bookStore.Delete(tc.targetID)
 
 		if id != tc.expected {
 			t.Errorf("failed for %v\n", tc.desc)
