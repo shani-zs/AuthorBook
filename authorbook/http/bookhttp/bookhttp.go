@@ -23,7 +23,14 @@ func New(bookS service.BookService) BookHandler {
 func (h BookHandler) GetAllBook(w http.ResponseWriter, req *http.Request) {
 	title := req.URL.Query().Get("title")
 	includeAuthor := req.URL.Query().Get("includeAuthor")
-	books := h.bookH.GetAllBook(title, includeAuthor)
+
+	books, err := h.bookH.GetAllBook(title, includeAuthor)
+	if err != nil {
+		log.Print(err)
+		w.WriteHeader(http.StatusBadRequest)
+
+		return
+	}
 
 	data, err := json.Marshal(books)
 	if err != nil {
@@ -41,24 +48,24 @@ func (h BookHandler) GetBookByID(w http.ResponseWriter, req *http.Request) {
 	params := mux.Vars(req)
 
 	id, err := strconv.Atoi(params["id"])
-	if err != nil {
-		_, _ = w.Write([]byte("invalid id"))
+	if err != nil || id < 0 {
 		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte("invalid id"))
 
 		return
 	}
 
 	book, err := h.bookH.GetBookByID(id)
 	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
 		_, _ = w.Write([]byte("book does not exist"))
+
 		return
 	}
 
 	data, err := json.Marshal(book)
 	if err != nil {
-		_, _ = w.Write([]byte("could not encode"))
-		w.WriteHeader(http.StatusBadRequest)
-
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
@@ -66,27 +73,28 @@ func (h BookHandler) GetBookByID(w http.ResponseWriter, req *http.Request) {
 	_, _ = w.Write(data)
 }
 
-func (h BookHandler) PostBook(w http.ResponseWriter, req *http.Request) {
+func (h BookHandler) Post(w http.ResponseWriter, req *http.Request) {
+	var book entities.Book
+
 	body, err := io.ReadAll(req.Body)
 	if err != nil {
-		_, _ = w.Write([]byte("could not read!"))
 		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte("could not read!"))
 
 		return
 	}
-
-	var book entities.Book
 
 	err = json.Unmarshal(body, &book)
 	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write([]byte("could not decode "))
+
 		return
 	}
 
-	book1, err := h.bookH.PostBook(&book)
+	book1, err := h.bookH.Post(&book)
 	if err != nil {
-		log.Print(err)
-
+		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write([]byte("could not read!"))
 
 		return
@@ -95,21 +103,20 @@ func (h BookHandler) PostBook(w http.ResponseWriter, req *http.Request) {
 	data, err := json.Marshal(book1)
 	if err != nil {
 		log.Print(err)
-
 		_, _ = w.Write([]byte("could not read!"))
 
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusCreated)
 	_, _ = w.Write(data)
 }
 
-func (h BookHandler) PutBook(w http.ResponseWriter, req *http.Request) {
+func (h BookHandler) Put(w http.ResponseWriter, req *http.Request) {
 	body, err := io.ReadAll(req.Body)
 	if err != nil {
-		_, _ = w.Write([]byte("could not read!"))
 		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte("could not read!"))
 
 		return
 	}
@@ -118,15 +125,18 @@ func (h BookHandler) PutBook(w http.ResponseWriter, req *http.Request) {
 
 	err = json.Unmarshal(body, &book)
 	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write([]byte("could not decode "))
+
 		return
 	}
 
 	params := mux.Vars(req)
 	id, _ := strconv.Atoi(params["id"])
 
-	book, err = h.bookH.PutBook(&book, id)
+	book, err = h.bookH.Put(&book, id)
 	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
 		log.Print(err)
 		return
 	}
@@ -137,22 +147,23 @@ func (h BookHandler) PutBook(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusCreated)
 	_, _ = w.Write(data)
 }
 
-func (h BookHandler) DeleteBook(w http.ResponseWriter, req *http.Request) {
+func (h BookHandler) Delete(w http.ResponseWriter, req *http.Request) {
 	params := mux.Vars(req)
 
 	id, err := strconv.Atoi(params["id"])
-	if err != nil {
+	if err != nil || id < 0 {
+		w.WriteHeader(http.StatusBadRequest)
 		log.Print(err)
 		return
 	}
 
-	_, err = h.bookH.DeleteBook(id)
+	_, err = h.bookH.Delete(id)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusNotFound)
 		log.Print(err)
 
 		return

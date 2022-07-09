@@ -1,4 +1,4 @@
-package author
+package authorhttp
 
 import (
 	"encoding/json"

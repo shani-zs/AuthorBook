@@ -1,6 +1,7 @@
 package bookservice
 
 import (
+	"errors"
 	"log"
 	"projects/GoLang-Interns-2022/authorbook/entities"
 	"projects/GoLang-Interns-2022/authorbook/store"
@@ -8,36 +9,36 @@ import (
 )
 
 type BookService struct {
-	bookService store.BookStorer
+	bookService   store.BookStorer
+	authorService store.AuthorStorer
 }
 
-func New(s store.BookStorer) BookService {
-	return BookService{s}
+func New(bs store.BookStorer, as store.AuthorStorer) BookService {
+	return BookService{bs, as}
 }
 
-func (bs BookService) GetAllBook(title, includeAuthor string) ([]entities.Book, error) {
+func (b BookService) GetAllBook(title, includeAuthor string) ([]entities.Book, error) {
 	var (
 		books []entities.Book
 		err   error
 	)
 
 	if title != "" {
-		books, err = bs.bookService.GetBooksByTitle(title)
+		books, err = b.bookService.GetBooksByTitle(title)
+		if err != nil {
+			log.Print(err)
+			return []entities.Book{}, err
+		}
+	} else {
+		books, err = b.bookService.GetAllBook()
 		if err != nil {
 			log.Print(err)
 			return []entities.Book{}, err
 		}
 	}
-
-	books, err = bs.bookService.GetAllBook()
-	if err != nil {
-		log.Print(err)
-		return []entities.Book{}, err
-	}
-
 	if includeAuthor == "true" {
 		for i := range books {
-			author, err := bs.bookService.IncludeAuthor(books[i].AuthorID)
+			author, err := b.authorService.IncludeAuthor(books[i].AuthorID)
 			if err != nil {
 				log.Print(err)
 				return []entities.Book{}, err
@@ -50,12 +51,12 @@ func (bs BookService) GetAllBook(title, includeAuthor string) ([]entities.Book, 
 	return books, nil
 }
 
-func (bs BookService) GetBookByID(id int) (entities.Book, error) {
+func (b BookService) GetBookByID(id int) (entities.Book, error) {
 	if id <= 0 {
-		return entities.Book{}, nil
+		return entities.Book{}, errors.New("invalid id")
 	}
 
-	book, err := bs.bookService.GetBookByID(id)
+	book, err := b.bookService.GetBookByID(id)
 	if err != nil {
 		log.Print(err)
 		return entities.Book{}, err
@@ -64,12 +65,12 @@ func (bs BookService) GetBookByID(id int) (entities.Book, error) {
 	return book, nil
 }
 
-func (bs BookService) Post(book *entities.Book) (entities.Book, error) {
+func (b BookService) Post(book *entities.Book) (entities.Book, error) {
 	if book.Title == "" || book.AuthorID < 0 || checkPublication(book.Publication) {
-		return entities.Book{}, nil
+		return entities.Book{}, errors.New("invalid constraints")
 	}
 
-	id, err := bs.bookService.Post(book)
+	id, err := b.bookService.Post(book)
 	if err != nil || id == -1 {
 		return entities.Book{}, err
 	}
@@ -79,12 +80,12 @@ func (bs BookService) Post(book *entities.Book) (entities.Book, error) {
 	return *book, nil
 }
 
-func (bs BookService) Put(book *entities.Book, id int) (entities.Book, error) {
+func (b BookService) Put(book *entities.Book, id int) (entities.Book, error) {
 	if book.Title == "" || book.AuthorID <= 0 || checkPublication(book.Publication) {
 		return entities.Book{}, nil
 	}
 
-	i, err := bs.bookService.Put(book, id)
+	i, err := b.bookService.Put(book, id)
 	if err != nil || id <= -1 {
 		return entities.Book{}, err
 	}
@@ -94,12 +95,12 @@ func (bs BookService) Put(book *entities.Book, id int) (entities.Book, error) {
 	return *book, nil
 }
 
-func (bs BookService) Delete(id int) (int, error) {
+func (b BookService) Delete(id int) (int, error) {
 	if id < 0 {
 		return -1, nil
 	}
 
-	i, err := bs.bookService.Delete(id)
+	i, err := b.bookService.Delete(id)
 	if err != nil || i == -1 {
 		return -1, err
 	}

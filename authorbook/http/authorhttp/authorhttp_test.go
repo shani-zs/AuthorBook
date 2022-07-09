@@ -1,4 +1,4 @@
-package author
+package authorhttp
 
 import (
 	"bytes"
@@ -17,7 +17,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func TestPostAuthor(t *testing.T) {
+func TestPost(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mockService := service.NewMockAuthorService(ctrl)
 	mock := New(mockService)
@@ -43,11 +43,11 @@ func TestPostAuthor(t *testing.T) {
 		{desc: "unmarshalling error ", input: entities.Author{}, expected: entities.Author{},
 			expectedStatus: http.StatusBadRequest, expectedErr: nil,
 		},
-		//{desc: "exiting author", body: entities.Author{
+		//{desc: "exiting authorhttp", body: entities.Author{
 		//	AuthorID: 3, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/05/1990", PenName: "Dark horse"}, expectedStatus: http.StatusBadRequest},
 		//{desc: "invalid firstname", body: entities.Author{
 		//	AuthorID: 3, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/05/1990", PenName: "Dark horse"}, expectedStatus: http.StatusBadRequest},
-		//{desc: "valid author", body: entities.Author{
+		//{desc: "valid authorhttp", body: entities.Author{
 		//	AuthorID: 4, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/05/1990", PenName: "Dark horse"}, expectedStatus: http.StatusCreated},
 	}
 
@@ -61,11 +61,11 @@ func TestPostAuthor(t *testing.T) {
 			data = []byte("hello")
 		}
 
-		req := httptest.NewRequest("POST", "localhost:8000/author", bytes.NewReader(data))
+		req := httptest.NewRequest("POST", "localhost:8000/authorhttp", bytes.NewReader(data))
 		w := httptest.NewRecorder()
 
 		if tc.input.AuthorID == 3 {
-			mockService.EXPECT().PostAuthor(tc.input).Return(tc.expected, tc.expectedErr)
+			mockService.EXPECT().Post(tc.input).Return(tc.expected, tc.expectedErr)
 		}
 
 		mock.Post(w, req)
@@ -128,12 +128,12 @@ func TestPutAuthor(t *testing.T) {
 			data = []byte("hello")
 		}
 
-		req := httptest.NewRequest("PUT", "localhost:8000/author/{id}"+tc.TargetID, bytes.NewReader(data))
+		req := httptest.NewRequest("PUT", "localhost:8000/authorhttp/{id}"+tc.TargetID, bytes.NewReader(data))
 		req = mux.SetURLVars(req, map[string]string{"id": tc.TargetID})
 		w := httptest.NewRecorder()
 
 		for tc.input.AuthorID == 3 {
-			mockService.EXPECT().PutAuthor(tc.input, tc.input.AuthorID).Return(tc.expected, tc.expectedErr)
+			mockService.EXPECT().Put(tc.input, tc.input.AuthorID).Return(tc.expected, tc.expectedErr)
 		}
 
 		mock.Put(w, req)
@@ -162,7 +162,7 @@ func TestDeleteAuthor(t *testing.T) {
 	}
 
 	for _, tc := range testcases {
-		req := httptest.NewRequest("DELETE", "localhost:8000/author/{id}"+tc.target, nil)
+		req := httptest.NewRequest("DELETE", "localhost:8000/authorhttp/{id}"+tc.target, nil)
 		req = mux.SetURLVars(req, map[string]string{"id": tc.target})
 		w := httptest.NewRecorder()
 
@@ -171,7 +171,7 @@ func TestDeleteAuthor(t *testing.T) {
 			log.Print(err)
 		}
 
-		mockService.EXPECT().DeleteAuthor(id).Return(tc.expectedStatus, tc.expectedErr)
+		mockService.EXPECT().Delete(id).Return(tc.expectedStatus, tc.expectedErr)
 
 		mock.Delete(w, req)
 

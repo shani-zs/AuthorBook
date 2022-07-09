@@ -2,7 +2,7 @@ DROP DATABASE IF EXISTS AuthorBook;
 CREATE DATABASE AuthorBook;
 USE  AuthorBook;
 
- CREATE TABLE  book(
+ CREATE TABLE  books(
      id int not null AUTO_INCREMENT,
      author_id int,
      title varchar(50),

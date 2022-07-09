@@ -1,149 +1,247 @@
 package book
 
 import (
-	"context"
+	"errors"
 	"github.com/DATA-DOG/go-sqlmock"
 	"log"
-	"projects/GoLang-Interns-2022/authorbook/driver"
 	"projects/GoLang-Interns-2022/authorbook/entities"
+	"reflect"
 	"testing"
 )
 
 func TestGetAllBook(t *testing.T) {
+	db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+	if err != nil {
+		log.Print(err)
+	}
+
+	var (
+		book1 = entities.Book{BookID: 1, AuthorID: 1, Title: "book one", Publication: "penguin",
+			PublishedDate: "20/06/2000", Author: entities.Author{},
+		}
+
+		book2 = entities.Book{BookID: 2, AuthorID: 1, Title: "book two", Publication: "penguin",
+			PublishedDate: "20/06/2000", Author: entities.Author{},
+		}
+
+		books = sqlmock.NewRows([]string{"id", "author_id", "title", "publication", "published_date"}).
+			AddRow(book1.BookID, book1.AuthorID, book1.Title, book1.Publication, book1.PublishedDate).AddRow(book2.BookID,
+			book2.AuthorID, book2.Title, book2.Publication, book2.PublishedDate)
+	)
+
 	Testcases := []struct {
 		desc string
 
 		expected    []entities.Book
 		expectedErr error
 	}{
-		{desc: "getting all books", expected: []entities.Book{{BookID: 1,
-			AuthorID: 1, Title: "book one", Publication: "penguin", PublishedDate: "20/06/2000",
-			Author: entities.Author{}}}, expectedErr: nil,
-		},
-		{desc: "getting book with author and particular title",
-			expected: []entities.Book{{BookID: 1, AuthorID: 1, Title: "book one", Publication: "penguin",
-				PublishedDate: "20/06/2000", Author: entities.Author{AuthorID: 1, FirstName: "shani",
-					LastName: "kumar", DOB: "30/04/1980", PenName: "jack"}}}, expectedErr: nil,
-		},
+		{desc: "getting all books", expected: []entities.Book{book1, book2}, expectedErr: nil},
+		//{desc: "scan error", expected: []entities.Book{}, expectedErr: nil},
+		{desc: "getting all books", expected: []entities.Book{}, expectedErr: errors.New("syntax error")},
+	}
+
+	for _, tc := range Testcases {
+		bs := New(db)
+
+		mock.ExpectQuery("SELECT * FROM book").WithArgs().WillReturnRows(books).WillReturnError(tc.expectedErr)
+		b, err := bs.GetAllBook()
+		if err != nil {
+			log.Print(err)
+		}
+
+		if !reflect.DeepEqual(b, tc.expected) {
+			t.Errorf("failed for %s ", tc.desc)
+		}
+	}
+}
+func TestGetBooksByTitle(t *testing.T) {
+	db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+	if err != nil {
+		log.Print(err)
 	}
 
 	var (
-		book1=
+		book1 = entities.Book{BookID: 1, AuthorID: 1, Title: "book one", Publication: "penguin",
+			PublishedDate: "20/06/2000", Author: entities.Author{},
+		}
+
+		book2 = entities.Book{BookID: 2, AuthorID: 1, Title: "book one", Publication: "penguin",
+			PublishedDate: "20/06/2000", Author: entities.Author{},
+		}
+
 		books = sqlmock.NewRows([]string{"id", "author_id", "title", "publication", "published_date"}).
-			AddRow()
+			AddRow(book1.BookID, book1.AuthorID, book1.Title, book1.Publication, book1.PublishedDate).AddRow(book2.BookID,
+			book2.AuthorID, book2.Title, book2.Publication, book2.PublishedDate)
 	)
 
+	Testcases := []struct {
+		desc  string
+		title string
+
+		expected    []entities.Book
+		expectedErr error
+	}{
+		{desc: "getting all books", title: "book one", expected: []entities.Book{book1, book2}, expectedErr: nil},
+		//{desc: "scan error", expected: []entities.Book{}, expectedErr: nil},
+		{desc: "getting all books", title: "", expected: []entities.Book{}, expectedErr: errors.New("syntax error")},
+	}
+
 	for _, tc := range Testcases {
-		db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
-		if err != nil {
-			log.Print(err)
-		}
-		mock.ExpectExec("")
 		bs := New(db)
-		books, err := bs.GetAllBook(context.TODO())
+		mock.ExpectQuery("SELECT * FROM book WHERE title=?").WithArgs().WillReturnRows(books).WillReturnError(tc.expectedErr)
+		b, err := bs.GetBooksByTitle(tc.title)
 		if err != nil {
 			log.Print(err)
 		}
 
+		if !reflect.DeepEqual(b, tc.expected) {
+			t.Errorf("failed for %s", tc.desc)
+		}
 	}
 }
+
 func TestGetBookByID(t *testing.T) {
+	db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+	if err != nil {
+		log.Print(err)
+	}
+	var (
+		book = entities.Book{BookID: 1,
+			AuthorID: 1, Title: "book one", Publication: "penguin", PublishedDate: "20/06/2000"}
+		book1 = sqlmock.NewRows([]string{"id", "author_id", "title", "publication", "published_date"}).AddRow(book.BookID, book.AuthorID, book.Title, book.Publication, book.PublishedDate)
+	)
+
 	Testcases := []struct {
 		desc     string
 		targetID int
 
-		expected entities.Book
+		expected    entities.Book
+		expectedErr error
 	}{
 		{desc: "fetching book by id",
 			targetID: 1, expected: entities.Book{BookID: 1,
-			AuthorID: 1, Title: "book one", Publication: "penguin", PublishedDate: "20/06/2000"}},
+				AuthorID: 1, Title: "book one", Publication: "penguin", PublishedDate: "20/06/2000"}, expectedErr: nil},
 
-		{"invalid id", -1, entities.Book{}},
+		{"invalid id", -1, entities.Book{}, errors.New("invalid")},
 	}
 
 	for _, tc := range Testcases {
-		DB := driver.Connection()
-		bookStore := New(DB)
+		bs := New(db)
+		mock.ExpectQuery("select * from book where id=?").WithArgs(tc.targetID).WillReturnRows(book1).WillReturnError(tc.expectedErr)
+		b, err := bs.GetBookByID(tc.targetID)
+		if err != nil {
+			log.Print(err)
+		}
 
-		book := bookStore.GetBookByID(tc.targetID)
-
-		if book != tc.expected {
+		if b != tc.expected || err != tc.expectedErr {
 			t.Errorf("failed for %v\n", tc.desc)
 		}
 	}
 }
-func TestPostBook(t *testing.T) {
+func TestPost(t *testing.T) {
 	testcases := []struct {
 		desc string
 		body entities.Book
 
-		err error
+		expectedErr  error
+		RowAffected  int64
+		LastInserted int64
 	}{
-		{desc: "valid case", body: entities.Book{BookID: 4, AuthorID: 1, Title: "deciding decade", Publication: "penguin",
-			PublishedDate: "20/03/2010", Author: entities.Author{AuthorID: 1, FirstName: "shani", LastName: "kumar",
-				DOB: "30/04/2001", PenName: "sk"}}},
-
-		{desc: "already existing book", body: entities.Book{BookID: 4, AuthorID: 1, Title: "deciding decade",
-			Publication: "penguin", PublishedDate: "20/03/2010", Author: entities.Author{AuthorID: 1, FirstName: "shani",
-				LastName: "kumar", DOB: "30/04/2001", PenName: "sk"}}},
+		{desc: "valid book", body: entities.Book{BookID: 1, AuthorID: 1, Title: "book one", Publication: "penguin",
+			PublishedDate: "20/06/2000", Author: entities.Author{}},
+			expectedErr: nil, RowAffected: 1, LastInserted: 15,
+		},
+		{desc: "exiting book", body: entities.Book{BookID: 1, AuthorID: 1, Title: "book one", Publication: "penguin",
+			PublishedDate: "20/06/2000", Author: entities.Author{}},
+			expectedErr: errors.New("already exists"), RowAffected: 0, LastInserted: 0,
+		},
 	}
+
+	db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+	if err != nil {
+		t.Fatalf("error during the opening of database:%v\n", err)
+	}
+
+	defer db.Close()
+
 	for _, tc := range testcases {
-		DB := driver.Connection()
-		bookStore := New(DB)
+		mock.ExpectExec("insert into book(author_id,title,publication,published_date)values(?,?,?,?)").
+			WithArgs(tc.body.AuthorID, tc.body.Title, tc.body.Publication, tc.body.PublishedDate).
+			WillReturnResult(sqlmock.NewResult(tc.LastInserted, tc.RowAffected)).WillReturnError(tc.expectedErr)
 
-		_, err := bookStore.Post(&tc.body)
+		bs := New(db)
 
-		if tc.err != err {
-			t.Errorf("failed for %v\n", tc.desc)
+		_, err = bs.Post(&tc.body)
+		if err != tc.expectedErr {
+			t.Errorf("failed for %s", tc.desc)
 		}
 	}
 }
-func TestPutBook(t *testing.T) {
+func TestPut(t *testing.T) {
 	testcases := []struct {
 		desc     string
 		body     entities.Book
 		targetID int
 
-		expectedErr error
+		expectedErr  error
+		RowAffected  int64
+		LastInserted int64
 	}{
-		{desc: "creating a book", body: entities.Book{BookID: 4, AuthorID: 1, Title: "deciding", Publication: "penguin",
-			PublishedDate: "20/03/2010", Author: entities.Author{AuthorID: 1, FirstName: "shani", LastName: "kumar",
-				DOB: "30/04/2001", PenName: "sk"}}, targetID: 13},
-
-		{desc: "updating a book", body: entities.Book{BookID: 4, AuthorID: 1, Title: "deciding decade",
-			Publication: "penguin", PublishedDate: "20/03/2010", Author: entities.Author{AuthorID: 1,
-				FirstName: "shani", LastName: "kumar", DOB: "30/04/2001", PenName: "sk"}}, targetID: 14},
+		{desc: "not existing book", body: entities.Book{BookID: 1, AuthorID: 1, Title: "book one", Publication: "penguin",
+			PublishedDate: "20/06/2000", Author: entities.Author{}}, targetID: -1,
+			expectedErr: errors.New("does not exist"), RowAffected: 0, LastInserted: 0,
+		},
+		{desc: "exiting book", body: entities.Book{BookID: 12, AuthorID: 1, Title: "book one", Publication: "penguin",
+			PublishedDate: "20/06/2000", Author: entities.Author{}}, targetID: 4,
+			expectedErr: nil, RowAffected: 1, LastInserted: 15,
+		},
 	}
 
+	db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+	if err != nil {
+		t.Fatalf("error during the opening of database:%v\n", err)
+	}
+
+	defer db.Close()
+
 	for _, tc := range testcases {
-		DB := driver.Connection()
-		bookStore := New(DB)
+		mock.ExpectExec("update book set id=?,author_id=?,title=?,publication=?,published_date=? where id=?").
+			WithArgs(tc.body.BookID, tc.body.AuthorID, tc.body.Title, tc.body.Publication, tc.body.PublishedDate, tc.targetID).
+			WillReturnResult(sqlmock.NewResult(tc.LastInserted, tc.RowAffected)).WillReturnError(tc.expectedErr)
 
-		_, err := bookStore.Put(&tc.body, tc.targetID)
+		bs := New(db)
 
-		if tc.expectedErr != err {
-			t.Errorf("failed for %v\n", tc.desc)
+		_, err = bs.Put(&tc.body, tc.targetID)
+		if err != tc.expectedErr {
+			t.Errorf("failed for %s", tc.desc)
 		}
 	}
 }
-func TestDeleteBook(t *testing.T) {
+func TestDelete(t *testing.T) {
 	testcases := []struct {
-		desc     string
-		targetID int
-
-		expected int
+		// input
+		desc   string
+		target int
+		// output
+		rowsAffected   int64
+		lastInsertedID int64
+		expectedErr    error
 	}{
-		{"valid id", 14, 1},
-		{"invalid id", -1, 0},
+		{"valid authorId", 4, 1, 0, nil},
+		{"invalid authorId", -1, 0, 0, errors.New("invalid bookID")},
 	}
 
 	for _, tc := range testcases {
-		DB := driver.Connection()
-		bookStore := New(DB)
+		db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+		if err != nil {
+			log.Print(err)
+		}
+		bs := New(db)
 
-		id, _ := bookStore.Delete(tc.targetID)
-
-		if id != tc.expected {
+		mock.ExpectExec("delete from book where id=?").WithArgs(tc.target).
+			WillReturnResult(sqlmock.NewResult(tc.lastInsertedID, tc.rowsAffected)).WillReturnError(tc.expectedErr)
+		_, err = bs.Delete(tc.target)
+		if err != tc.expectedErr {
 			t.Errorf("failed for %v\n", tc.desc)
 		}
 	}

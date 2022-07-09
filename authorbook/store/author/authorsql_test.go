@@ -1,7 +1,6 @@
 package author
 
 import (
-	"context"
 	"errors"
 	"log"
 	"projects/GoLang-Interns-2022/authorbook/entities"
@@ -10,8 +9,7 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 )
 
-func TestPostAuthor(t *testing.T) {
-
+func TestPost(t *testing.T) {
 	testcases := []struct {
 		desc string
 		body entities.Author
@@ -42,14 +40,14 @@ func TestPostAuthor(t *testing.T) {
 			WillReturnError(tc.expectedErr)
 
 		s := New(db)
-		_, err = s.Post(context.TODO(), tc.body)
+		_, err = s.Post(tc.body)
 
 		if err != tc.expectedErr {
 			t.Errorf("failed for %s", tc.desc)
 		}
 	}
 }
-func TestPutAuthor(t *testing.T) {
+func TestPut(t *testing.T) {
 	testcases := []struct {
 		desc         string
 		body         entities.Author
@@ -81,7 +79,7 @@ func TestPutAuthor(t *testing.T) {
 			WithArgs(tc.body.AuthorID, tc.body.FirstName, tc.body.LastName, tc.body.DOB, tc.body.PenName, tc.id).
 			WillReturnResult(sqlmock.NewResult(tc.LastInserted, tc.RowAffected)).WillReturnError(tc.expectedErr)
 
-		_, err = s.Put(context.TODO(), tc.body, tc.id)
+		_, err = s.Put(tc.body, tc.id)
 
 		if err != tc.expectedErr {
 			t.Errorf("failed for %v\n, expected: %v, got: %v", tc.desc, tc.expectedErr, err)
@@ -89,7 +87,7 @@ func TestPutAuthor(t *testing.T) {
 		db.Close()
 	}
 }
-func TestDeleteAuthor(t *testing.T) {
+func TestDelete(t *testing.T) {
 	testcases := []struct {
 		// input
 		desc   string
@@ -108,12 +106,50 @@ func TestDeleteAuthor(t *testing.T) {
 		if err != nil {
 			log.Print(err)
 		}
-		s := New(db)
+		as := New(db)
 
-		mock.ExpectExec("delete from authorhttp where author_id=?").WithArgs(tc.target).
+		mock.ExpectExec("delete from author where author_id=?").WithArgs(tc.target).
 			WillReturnResult(sqlmock.NewResult(tc.lastInsertedID, tc.rowsAffected)).WillReturnError(tc.expectedErr)
-		_, err = s.Delete(context.TODO(), tc.target)
+		_, err = as.Delete(tc.target)
+
 		if err != tc.expectedErr {
+			t.Errorf("failed for %v\n", tc.desc)
+		}
+	}
+}
+func TestIncludeAuthor(t *testing.T) {
+	db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+	if err != nil {
+		log.Print(err)
+	}
+	var (
+		author  = entities.Author{AuthorID: 1, FirstName: "shani", LastName: "kumar", DOB: "20/06/2000", PenName: "sk"}
+		author1 = sqlmock.NewRows([]string{"author_id", "first_name", "last_name", "dob", "pen_name"}).AddRow(author.AuthorID,
+			author.FirstName, author.LastName, author.DOB, author.PenName)
+	)
+
+	Testcases := []struct {
+		desc     string
+		targetID int
+
+		expected    entities.Author
+		expectedErr error
+	}{
+		{desc: "fetching book by id",
+			targetID: 1, expected: entities.Author{AuthorID: 1, FirstName: "shani", LastName: "kumar", DOB: "20/06/2000", PenName: "sk"},
+		},
+		{"invalid id", -1, entities.Author{}, errors.New("invalid")},
+	}
+
+	for _, tc := range Testcases {
+		bs := New(db)
+		mock.ExpectQuery("SELECT * FROM author where author_id=?").WithArgs(tc.targetID).WillReturnRows(author1).WillReturnError(tc.expectedErr)
+		a, err := bs.IncludeAuthor(tc.targetID)
+		if err != nil {
+			log.Print(err)
+		}
+
+		if a != tc.expected || err != tc.expectedErr {
 			t.Errorf("failed for %v\n", tc.desc)
 		}
 	}

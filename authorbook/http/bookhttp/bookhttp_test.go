@@ -3,214 +3,246 @@ package bookhttp
 import (
 	"bytes"
 	"encoding/json"
-	"io"
+	"errors"
+	"github.com/golang/mock/gomock"
+	"github.com/gorilla/mux"
+	"github.com/stretchr/testify/assert"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"projects/GoLang-Interns-2022/authorbook/entities"
+	"projects/GoLang-Interns-2022/authorbook/service"
 	"reflect"
+	"strconv"
 	"testing"
-
-	"github.com/gorilla/mux"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestGetAllBook(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	mockService := service.NewMockBookService(ctrl)
+	mock := New(mockService)
+
 	Testcases := []struct {
 		desc          string
 		title         string
 		includeAuthor string
 
-		expectedBooks []entities.Book
+		expectedBooks  []entities.Book
+		expectedErr    error
+		expectedStatus int
 	}{
-		{desc: "getting all books", title: "", includeAuthor: "", expectedBooks: []entities.Book{{BookID: 1,
+		{desc: "success case", title: "", includeAuthor: "", expectedBooks: []entities.Book{{BookID: 1,
 			AuthorID: 1, Title: "book one", Publication: "scholastic", PublishedDate: "20/06/2018",
-			Author: entities.Author{}},
-			{BookID: 2, AuthorID: 1, Title: "book two", Publication: "penguin", PublishedDate: "20/08/2018", Author: entities.Author{}}},
+			Author: entities.Author{}}, {BookID: 2, AuthorID: 1, Title: "book two", Publication: "penguin",
+			PublishedDate: "20/08/2018", Author: entities.Author{}}}, expectedErr: nil, expectedStatus: http.StatusOK,
 		},
-		{desc: "getting book with author and particular title", title: "book+two", includeAuthor: "true",
-			expectedBooks: []entities.Book{{BookID: 2, AuthorID: 1, Title: "book two", Publication: "penguin",
-				PublishedDate: "20/08/2018", Author: entities.Author{AuthorID: 1, FirstName: "shani", LastName: "kumar",
-					DOB: "30/04/2001", PenName: "sk"}}}},
+		{desc: "invalid case", title: "book+two", includeAuthor: "true", expectedBooks: []entities.Book{},
+			expectedErr: errors.New("does not exist"), expectedStatus: http.StatusBadRequest,
+		},
 	}
 
 	for _, tc := range Testcases {
 		req := httptest.NewRequest("GET", "localhost:8000/book?"+"title="+tc.title+"&"+"includeAuthor="+tc.includeAuthor, nil)
 		w := httptest.NewRecorder()
-		h := New(mockService{})
 
-		h.GetAllBook(w, req)
-
-		result := w.Result()
-
-		body, err := io.ReadAll(result.Body)
-		if err != nil {
-			log.Print(err)
+		if tc.title == "" {
+			mockService.EXPECT().GetAllBook(tc.title, tc.includeAuthor).Return(tc.expectedBooks, tc.expectedErr)
 		}
 
-		var books []entities.Book
+		if tc.title == "book+two" {
+			mockService.EXPECT().GetAllBook("book two", tc.includeAuthor).Return(tc.expectedBooks, tc.expectedErr)
+		}
 
-		_ = json.Unmarshal(body, &books)
+		mock.GetAllBook(w, req)
 
-		if !assert.Equal(t, tc.expectedBooks, books) {
+		res := w.Result()
+		if !assert.Equal(t, tc.expectedStatus, res.StatusCode) {
 			t.Errorf("failed for %s\n", tc.desc)
 		}
 	}
 }
 
 func TestGetBookByID(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	mockService := service.NewMockBookService(ctrl)
+	mock := New(mockService)
+
 	Testcases := []struct {
-		desc               string
-		targetID           string
-		expectedBook       entities.Book
+		desc     string
+		targetID string
+
+		expected           entities.Book
 		expectedStatusCode int
+		expectedErr        error
 	}{
-		{desc: "fetching book by id", targetID: "1", expectedBook: entities.Book{BookID: 1, AuthorID: 1, Title: "book two",
+		{desc: "fetching book by id", targetID: "1", expected: entities.Book{BookID: 1, AuthorID: 1, Title: "book two",
 			Publication: "penguin", PublishedDate: "20/08/2018", Author: entities.Author{AuthorID: 1, FirstName: "shani",
-				LastName: "kumar", DOB: "30/04/2001", PenName: "sk"}}, expectedStatusCode: http.StatusOK},
-		{"invalid id", "-1", entities.Book{}, http.StatusBadRequest},
+				LastName: "kumar", DOB: "30/04/2001", PenName: "sk"}}, expectedStatusCode: http.StatusOK, expectedErr: nil,
+		},
+		{"invalid id", "-1", entities.Book{}, http.StatusBadRequest,
+			errors.New("invalid id"),
+		},
 	}
 
 	for _, tc := range Testcases {
 		req := httptest.NewRequest("GET", "localhost:8000/book/{id}"+tc.targetID, nil)
 		w := httptest.NewRecorder()
 		req = mux.SetURLVars(req, map[string]string{"id": tc.targetID})
-		h := New(mockService{})
 
-		h.GetBookByID(w, req)
+		id, _ := strconv.Atoi(tc.targetID)
+		if tc.targetID != "-1" {
+			mockService.EXPECT().GetBookByID(id).Return(tc.expected, tc.expectedErr)
+		}
+		mock.GetBookByID(w, req)
 
 		result := w.Result()
-		body, err := io.ReadAll(result.Body)
 
-		if err != nil {
-			log.Print(err)
-		}
-
-		var books entities.Book
-
-		_ = json.Unmarshal(body, &books)
-
-		if !reflect.DeepEqual(books, tc.expectedBook) {
+		if !reflect.DeepEqual(tc.expectedStatusCode, result.StatusCode) {
 			t.Errorf("failed for %s\n", tc.desc)
 		}
 	}
 }
 
-func TestPostBook(t *testing.T) {
+func TestPost(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	mockService := service.NewMockBookService(ctrl)
+	mock := New(mockService)
+
 	testcases := []struct {
 		desc string
 		body entities.Book
 
-		expectedBook entities.Book
+		expected           entities.Book
+		expectedErr        error
+		expectedStatusCode int
 	}{
-		{desc: "valid case", body: entities.Book{BookID: 4, AuthorID: 1, Title: "deciding decade", Publication: "penguin",
-			PublishedDate: "20/03/2010", Author: entities.Author{AuthorID: 1, FirstName: "shani", LastName: "kumar",
-				DOB: "30/04/2001", PenName: "sk"}},
-			expectedBook: entities.Book{BookID: 4, AuthorID: 1, Title: "deciding decade", Publication: "penguin",
-				PublishedDate: "20/03/2010", Author: entities.Author{AuthorID: 1, FirstName: "shani", LastName: "kumar",
-					DOB: "30/04/2001", PenName: "sk"}}},
+		{desc: "invalid case", body: entities.Book{BookID: 0, AuthorID: 1, Title: "deciding decade", Publication: "penguin",
+			PublishedDate: "20/03/2010", Author: entities.Author{}},
+			expected: entities.Book{}, expectedErr: errors.New("something"),
+			expectedStatusCode: http.StatusBadRequest,
+		},
 
-		{desc: "already existing book", body: entities.Book{BookID: 1, AuthorID: 1, Title: "deciding decade",
-			Publication: "penguin", PublishedDate: "20/03/2010", Author: entities.Author{AuthorID: 1, FirstName: "shani",
-				LastName: "kumar", DOB: "30/04/2001", PenName: "sk"}}},
+		{desc: "valid case", body: entities.Book{BookID: 0, AuthorID: 1, Title: "deciding decade",
+			Publication: "penguin", PublishedDate: "20/03/2010", Author: entities.Author{}},
+			expected: entities.Book{BookID: 15, AuthorID: 1, Title: "deciding decade", Publication: "penguin",
+				PublishedDate: "20/03/2010", Author: entities.Author{}},
+			expectedErr: nil, expectedStatusCode: http.StatusCreated,
+		},
+		{desc: "unmarshalling error", body: entities.Book{}, expected: entities.Book{}, expectedErr: errors.New("something"),
+			expectedStatusCode: http.StatusBadRequest,
+		},
 	}
 	for _, tc := range testcases {
-		b, err := json.Marshal(tc.body)
+		data, err := json.Marshal(tc.body)
 		if err != nil {
 			log.Printf("failed : %v", err)
 		}
 
-		req := httptest.NewRequest("POST", "localhost:8000/book", bytes.NewBuffer(b))
-		w := httptest.NewRecorder()
-		h := New(mockService{})
+		if tc.desc == "unmarshalling error" {
+			data = []byte("shani")
+		}
 
-		h.PostBook(w, req)
+		req := httptest.NewRequest("POST", "localhost:8000/book", bytes.NewBuffer(data))
+		w := httptest.NewRecorder()
+		if tc.desc == "invalid case" || tc.desc == "valid case" {
+			mockService.EXPECT().Post(&tc.body).Return(tc.expected, tc.expectedErr)
+		}
+		mock.Post(w, req)
 
 		result := w.Result()
 
-		var books entities.Book
-
-		body, err := io.ReadAll(result.Body)
-		if err != nil {
-			log.Print(err)
-		}
-
-		_ = json.Unmarshal(body, &books)
-
-		if !reflect.DeepEqual(tc.expectedBook, books) {
+		if !reflect.DeepEqual(tc.expectedStatusCode, result.StatusCode) {
 			t.Errorf("failed for %s\n", tc.desc)
 		}
 	}
 }
 
-func TestPutBook(t *testing.T) {
+func TestPut(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	mockService := service.NewMockBookService(ctrl)
+	mock := New(mockService)
+
 	testcases := []struct {
-		desc         string
-		body         entities.Book
-		targetID     string
-		expectedBook entities.Book
+		desc    string
+		input   entities.Book
+		inputID string
+
+		expected           entities.Book
+		expectedErr        error
+		expectedStatusCode int
 	}{
-		{desc: "creating a book", body: entities.Book{BookID: 4, AuthorID: 1, Title: "deciding decade",
-			Publication: "penguin", PublishedDate: "20/03/2010", Author: entities.Author{AuthorID: 1, FirstName: "shani",
-				LastName: "kumar", DOB: "30/04/2001", PenName: "sk"}}, targetID: "1",
-			expectedBook: entities.Book{BookID: 4, AuthorID: 1, Title: "deciding decade", Publication: "penguin",
-				PublishedDate: "20/03/2010", Author: entities.Author{AuthorID: 1, FirstName: "shani", LastName: "kumar",
-					DOB: "30/04/2001", PenName: "sk"}}},
-		{desc: "already existing book", body: entities.Book{BookID: 4, AuthorID: 1, Title: "decade",
-			Publication: "penguin", PublishedDate: "20/03/2010", Author: entities.Author{AuthorID: 1, FirstName: "shani",
-				LastName: "kumar", DOB: "30/04/2001", PenName: "sk"}},
-			targetID: "2", expectedBook: entities.Book{BookID: 4, AuthorID: 1, Title: "decade", Publication: "penguin",
-				PublishedDate: "20/03/2010", Author: entities.Author{AuthorID: 1, FirstName: "shani", LastName: "kumar",
-					DOB: "30/04/2001", PenName: "sk"}}},
+		{desc: "invalid case", input: entities.Book{BookID: 0, AuthorID: 1, Title: "deciding decade", Publication: "penguin",
+			PublishedDate: "20/03/2010", Author: entities.Author{}}, inputID: "2",
+			expected: entities.Book{}, expectedErr: errors.New("something"),
+			expectedStatusCode: http.StatusNotFound,
+		},
+
+		{desc: "valid case", input: entities.Book{BookID: 15, AuthorID: 1, Title: "deciding decade",
+			Publication: "penguin", PublishedDate: "20/03/2010", Author: entities.Author{}}, inputID: "4",
+			expected: entities.Book{BookID: 15, AuthorID: 1, Title: "deciding decade", Publication: "penguin",
+				PublishedDate: "20/03/2010", Author: entities.Author{}},
+			expectedErr: nil, expectedStatusCode: http.StatusCreated,
+		},
+		{desc: "unmarshalling error", input: entities.Book{}, expected: entities.Book{}, expectedErr: errors.New("something"),
+			expectedStatusCode: http.StatusBadRequest,
+		},
 	}
 	for _, tc := range testcases {
-		b, err := json.Marshal(tc.body)
+		data, err := json.Marshal(tc.input)
 		if err != nil {
 			log.Printf("failed : %v", err)
 		}
 
-		req := httptest.NewRequest("PUT", "localhost:8000/book/{id}"+tc.targetID, bytes.NewBuffer(b))
-		req = mux.SetURLVars(req, map[string]string{"id": tc.targetID})
-		w := httptest.NewRecorder()
-		h := New(mockService{})
+		if tc.desc == "unmarshalling error" {
+			data = []byte("shani")
+		}
 
-		h.PutBook(w, req)
+		req := httptest.NewRequest("PUT", "localhost:8000/book/{id}"+tc.inputID, bytes.NewBuffer(data))
+		req = mux.SetURLVars(req, map[string]string{"id": tc.inputID})
+		w := httptest.NewRecorder()
+
+		id, _ := strconv.Atoi(tc.inputID)
+		if tc.desc == "invalid case" || tc.desc == "valid case" {
+			mockService.EXPECT().Put(&tc.input, id).Return(tc.expected, tc.expectedErr)
+		}
+		mock.Put(w, req)
 
 		result := w.Result()
 
-		var book entities.Book
-
-		data, err := io.ReadAll(result.Body)
-		if err != nil {
-			log.Print(err)
-		}
-
-		_ = json.Unmarshal(data, &book)
-
-		if !reflect.DeepEqual(tc.expectedBook, book) {
+		if !reflect.DeepEqual(tc.expectedStatusCode, result.StatusCode) {
 			t.Errorf("failed for %s\n", tc.desc)
 		}
 	}
 }
 
 func TestDeleteBook(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	mockService := service.NewMockBookService(ctrl)
+	mock := New(mockService)
+
 	testcases := []struct {
-		desc     string
-		targetID string
+		desc    string
+		inputID string
 
 		expectedStatus int
+		expectedErr    error
 	}{
-		{"valid id", "1", http.StatusNoContent},
-		{"invalid id", "-1", http.StatusBadRequest},
+		{"valid id", "1", http.StatusNoContent, nil},
+		{"invalid id", "-1", http.StatusBadRequest, errors.New("something wrong")},
+		{"invalid case", "2", http.StatusNotFound, errors.New("something wrong")},
 	}
 
 	for _, tc := range testcases {
-		req := httptest.NewRequest("PUT", "localhost:8000/book/{id}"+tc.targetID, nil)
-		req = mux.SetURLVars(req, map[string]string{"id": tc.targetID})
+		req := httptest.NewRequest("PUT", "localhost:8000/book/{id}"+tc.inputID, nil)
+		req = mux.SetURLVars(req, map[string]string{"id": tc.inputID})
 		w := httptest.NewRecorder()
-		h := New(mockService{})
 
-		h.DeleteBook(w, req)
+		id, _ := strconv.Atoi(tc.inputID)
+		if tc.desc == "valid id" || tc.desc == "invalid case" {
+			mockService.EXPECT().Delete(id).Return(1, tc.expectedErr)
+		}
+
+		mock.Delete(w, req)
 
 		result := w.Result()
 		if !reflect.DeepEqual(tc.expectedStatus, result.StatusCode) {

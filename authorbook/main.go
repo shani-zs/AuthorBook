@@ -1,0 +1,48 @@
+package main
+
+import (
+	"log"
+	"net/http"
+
+	"projects/GoLang-Interns-2022/authorbook/driver"
+	"projects/GoLang-Interns-2022/authorbook/http/authorhttp"
+	"projects/GoLang-Interns-2022/authorbook/http/bookhttp"
+	"projects/GoLang-Interns-2022/authorbook/service/authorservice"
+	"projects/GoLang-Interns-2022/authorbook/service/bookservice"
+	"projects/GoLang-Interns-2022/authorbook/store/author"
+	"projects/GoLang-Interns-2022/authorbook/store/book"
+
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/gorilla/mux"
+)
+
+func main() {
+	r := mux.NewRouter()
+
+	DB := driver.Connection()
+	defer DB.Close()
+
+	authorStore := author.New(DB)
+	bookStore := book.New(DB)
+
+	authorService := authorservice.New(authorStore)
+	authorHandler := authorhttp.New(authorService)
+	// authorhttp endpoints
+	r.HandleFunc("/authorhttp", authorHandler.Post).Methods("POST")
+	r.HandleFunc("/authorhttp/{id}", authorHandler.Put).Methods("PUT")
+	r.HandleFunc("/authorhttp/{id}", authorHandler.Delete).Methods("DELETE")
+
+	bookService := bookservice.New(bookStore, authorStore)
+	bookHandler := bookhttp.New(bookService)
+	// book  endpoints
+	r.HandleFunc("/book", bookHandler.GetAllBook).Methods("GET")
+	r.HandleFunc("/book/{id}", bookHandler.GetBookByID).Methods("GET")
+	r.HandleFunc("/book", bookHandler.Post).Methods("POST")
+	r.HandleFunc("/book/{id}", bookHandler.Put).Methods("PUT")
+	r.HandleFunc("/book/{id}", bookHandler.Delete).Methods("DELETE")
+
+	err := http.ListenAndServe(":8000", r)
+	if err != nil {
+		log.Print(err)
+	}
+}

@@ -2,43 +2,66 @@ package bookservice
 
 import (
 	"errors"
+	"github.com/golang/mock/gomock"
 	"log"
 	"projects/GoLang-Interns-2022/authorbook/entities"
+	"projects/GoLang-Interns-2022/authorbook/store"
 	"reflect"
 	"testing"
 )
 
 func TestGetAllBook(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	mockAuthorStore := store.NewMockAuthorStorer(ctrl)
+	mockBookStore := store.NewMockBookStorer(ctrl)
+	mock := New(mockBookStore, mockAuthorStore)
+
 	Testcases := []struct {
 		desc          string
 		title         string
 		includeAuthor string
 
-		expected []entities.Book
+		expected   []entities.Book
+		expetedErr error
 	}{
-		{desc: "getting all books", title: "", includeAuthor: "", expected: []entities.Book{{BookID: 1,
-			AuthorID: 1, Title: "book one", Publication: "scholastic", PublishedDate: "20/06/2018", Author: entities.Author{}},
-			{BookID: 2, AuthorID: 1, Title: "book two", Publication: "penguin", PublishedDate: "20/08/2018",
-				Author: entities.Author{}}},
+		{desc: "getting all books", title: "", includeAuthor: "", expected: []entities.Book{},
+			expetedErr: errors.New("empty")},
+		{desc: "getting book with author and particular", title: "book two", includeAuthor: "",
+			expected: []entities.Book{}, expetedErr: errors.New("empty"),
 		},
-		{desc: "getting book with authorhttp and particular title", title: "book+two", includeAuthor: "true",
-			expected: []entities.Book{{BookID: 2, AuthorID: 1, Title: "book two", Publication: "penguin",
-				PublishedDate: "20/08/2018", Author: entities.Author{AuthorID: 1, FirstName: "shani",
-					LastName: "kumar", DOB: "30/04/2001", PenName: "sk"}}},
-		},
+		//{desc: "getting book with author and particular title", title: "book", includeAuthor: "true",
+		//	expected: []entities.Book{}, expetedErr: errors.New("empty"),
+		//},
 	}
 
 	for _, tc := range Testcases {
-		b := New(mockStore{})
-		book := b.GetAllBook(tc.title, tc.includeAuthor)
+		if tc.title == "" {
+			mockBookStore.EXPECT().GetAllBook().Return(tc.expected, tc.expetedErr)
+		}
+		if tc.title == "book two" {
+			mockBookStore.EXPECT().GetBooksByTitle(tc.title).Return(tc.expected, tc.expetedErr)
+		}
+		//if tc.includeAuthor == "true" {
+		//	mockBookStore.EXPECT().GetBooksByTitle(tc.title).Return(tc.expected, nil)
+		//	mockAuthorStore.EXPECT().IncludeAuthor(1).Return(tc.expected, tc.expetedErr)
+		//}
 
-		if !reflect.DeepEqual(book, tc.expected) {
+		books, err := mock.GetAllBook(tc.title, tc.includeAuthor)
+		if err != nil {
+			log.Print(err)
+		}
+		if !reflect.DeepEqual(books, tc.expected) {
 			t.Errorf("failed for %v\n", tc.desc)
 		}
 	}
 }
 
 func TestGetBookByID(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	mockAuthorStore := store.NewMockAuthorStorer(ctrl)
+	mockBookStore := store.NewMockBookStorer(ctrl)
+	mock := New(mockBookStore, mockAuthorStore)
+
 	Testcases := []struct {
 		desc     string
 		targetID int
@@ -47,20 +70,16 @@ func TestGetBookByID(t *testing.T) {
 		expectedErr  error
 	}{
 		{desc: "fetching book by id",
-			targetID: 1, expectedBody: entities.Book{BookID: 1, AuthorID: 1, Title: "book two", Publication: "penguin",
-				PublishedDate: "20/08/2018", Author: entities.Author{AuthorID: 1, FirstName: "shani", LastName: "kumar",
-					DOB: "30/04/2001", PenName: "sk"}}},
-
+			targetID: 1, expectedBody: entities.Book{}, expectedErr: errors.New("invalid id"),
+		},
 		{"invalid id", -1, entities.Book{}, errors.New("invalid id")},
 	}
 
 	for _, tc := range Testcases {
-		b := New(mockStore{})
-
-		book, err := b.GetBookByID(tc.targetID)
-		if err != nil {
-			log.Print(err)
+		if tc.targetID == 1 {
+			mockBookStore.EXPECT().GetBookByID(tc.targetID).Return(tc.expectedBody, tc.expectedErr)
 		}
+		book, _ := mock.GetBookByID(tc.targetID)
 
 		if !reflect.DeepEqual(book, tc.expectedBody) {
 			t.Errorf("failed for %v\n", tc.desc)
@@ -68,85 +87,108 @@ func TestGetBookByID(t *testing.T) {
 	}
 }
 
-func TestPostBook(t *testing.T) {
-	testcases := []struct {
-		desc string
-		body entities.Book
+func TestPost(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	mockAuthorStore := store.NewMockAuthorStorer(ctrl)
+	mockBookStore := store.NewMockBookStorer(ctrl)
+	mock := New(mockBookStore, mockAuthorStore)
 
-		expectedBook entities.Book
+	testcases := []struct {
+		desc  string
+		input entities.Book
+
+		expected    entities.Book
+		expectedErr error
 	}{
-		{desc: "already existing book", body: entities.Book{BookID: 1, AuthorID: 1, Title: "deciding decade",
-			Publication: "penguin", PublishedDate: "20/03/2010", Author: entities.Author{AuthorID: 1, FirstName: "shani",
-				LastName: "kumar", DOB: "30/04/2001", PenName: "sk"}}},
-		{desc: "invalid bookID", body: entities.Book{BookID: -4, AuthorID: 1, Title: "deciding decade",
-			Publication: "penguin", PublishedDate: "20/03/2010", Author: entities.Author{AuthorID: 1, FirstName: "shani",
-				LastName: "kumar", DOB: "30/04/2001", PenName: "sk"}}},
+		{desc: "success case", input: entities.Book{BookID: 0, AuthorID: 1, Title: "deciding decade",
+			Publication: "penguin", PublishedDate: "20/03/2010", Author: entities.Author{}},
+			expected: entities.Book{BookID: 12, AuthorID: 1, Title: "deciding decade", Publication: "penguin",
+				PublishedDate: "20/03/2010", Author: entities.Author{}}, expectedErr: nil,
+		},
+		{desc: "invalid publication", input: entities.Book{BookID: 1, AuthorID: 1, Title: "deciding decade",
+			Publication: "pen", PublishedDate: "20/03/2010", Author: entities.Author{}},
+			expected: entities.Book{}, expectedErr: nil,
+		},
+		{desc: "error", input: entities.Book{AuthorID: 1, Title: "deciding decade",
+			Publication: "penguin", PublishedDate: "20/03/2010", Author: entities.Author{}},
+			expectedErr: errors.New("something"),
+		},
 	}
 	for _, tc := range testcases {
-		b := New(mockStore{})
-
-		book, err := b.PostBook(&tc.body)
-		if err != nil {
-			log.Print(err)
+		if tc.desc != "invalid publication" {
+			mockBookStore.EXPECT().Post(&tc.input).Return(tc.expected.BookID, tc.expectedErr)
 		}
-
-		if !reflect.DeepEqual(book, tc.expectedBook) {
+		book, _ := mock.Post(&tc.input)
+		if !reflect.DeepEqual(book, tc.expected) {
 			t.Errorf("failed for %v\n", tc.desc)
 		}
 	}
 }
 
-func TestPutBook(t *testing.T) {
+func TestPut(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	mockAuthorStore := store.NewMockAuthorStorer(ctrl)
+	mockBookStore := store.NewMockBookStorer(ctrl)
+	mock := New(mockBookStore, mockAuthorStore)
+
 	testcases := []struct {
-		desc string
-		body entities.Book
+		desc    string
+		input   entities.Book
+		inputID int
 
-		expectedBook entities.Book
+		expected    entities.Book
+		expectedErr error
 	}{
-		{desc: "inserting a book", body: entities.Book{BookID: 4, AuthorID: 1, Title: "decade", Publication: "penguin",
-			PublishedDate: "20/03/2010", Author: entities.Author{AuthorID: 1, FirstName: "shani", LastName: "kumar",
-				DOB: "04/04/1990", PenName: "sk"}}, expectedBook: entities.Book{BookID: 4, AuthorID: 1, Title: "decade",
-			Publication: "penguin", PublishedDate: "20/03/2010", Author: entities.Author{AuthorID: 1,
-				FirstName: "shani", LastName: "kumar", DOB: "04/04/1990", PenName: "sk"}}},
-
-		{desc: "updating a book", body: entities.Book{BookID: 3, AuthorID: 1, Title: "book three", Publication: "penguin",
-			PublishedDate: "20/03/2010", Author: entities.Author{AuthorID: 1, FirstName: "shani", LastName: "kumar",
-				DOB: "30/04/2001", PenName: "sk"}}},
+		{desc: "success case", input: entities.Book{BookID: 12, AuthorID: 1, Title: "deciding decade",
+			Publication: "penguin", PublishedDate: "20/03/2010", Author: entities.Author{}}, inputID: 1,
+			expected: entities.Book{BookID: 12, AuthorID: 1, Title: "deciding decade", Publication: "penguin",
+				PublishedDate: "20/03/2010", Author: entities.Author{}}, expectedErr: nil,
+		},
+		{desc: "invalid publication", input: entities.Book{BookID: 1, AuthorID: 1, Title: "deciding decade",
+			Publication: "pen", PublishedDate: "20/03/2010", Author: entities.Author{}},
+			expected: entities.Book{}, expectedErr: nil,
+		},
+		{desc: "error", input: entities.Book{AuthorID: 1, Title: "deciding decade",
+			Publication: "penguin", PublishedDate: "20/03/2010", Author: entities.Author{}},
+			expectedErr: errors.New("something went wrong"),
+		},
 	}
 	for _, tc := range testcases {
-		b := New(mockStore{})
-
-		book, err := b.PostBook(&tc.body)
-		if err != nil {
-			log.Print(err)
+		if tc.desc != "invalid publication" {
+			mockBookStore.EXPECT().Put(&tc.input, tc.inputID).Return(tc.expected.BookID, tc.expectedErr)
 		}
-
-		if !reflect.DeepEqual(book, tc.expectedBook) {
+		book, _ := mock.Put(&tc.input, tc.inputID)
+		if !reflect.DeepEqual(book, tc.expected) {
 			t.Errorf("failed for %v\n", tc.desc)
 		}
 	}
 }
 
-func TestDeleteBook(t *testing.T) {
-	testcases := []struct {
-		desc     string
-		targetID int
+func TestDelete(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	mockAuthorStore := store.NewMockAuthorStorer(ctrl)
+	mockBookStore := store.NewMockBookStorer(ctrl)
+	mock := New(mockBookStore, mockAuthorStore)
 
-		expected int
+	testcases := []struct {
+		desc    string
+		inputID int
+
+		expectedID  int
+		expectedErr error
 	}{
-		{"valid id", 1, 1},
-		{"invalid id", -1, -1},
+		{"valid id", 1, 1, nil},
+		{"invalid id", -1, -1, nil},
+		{"error case", 1, -1, errors.New("something went wrong")},
 	}
 
 	for _, tc := range testcases {
-		b := New(mockStore{})
-
-		id, err := b.DeleteBook(tc.targetID)
-		if err != nil {
-			log.Print(err)
+		if tc.desc != "invalid id" {
+			mockBookStore.EXPECT().Delete(tc.inputID).Return(tc.expectedID, tc.expectedErr)
 		}
+		id, _ := mock.Delete(tc.inputID)
 
-		if !reflect.DeepEqual(id, tc.expected) {
+		if !reflect.DeepEqual(id, tc.expectedID) {
 			t.Errorf("failed for %v\n", tc.desc)
 		}
 	}

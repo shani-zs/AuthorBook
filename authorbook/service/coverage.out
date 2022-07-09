@@ -1,4 +1,25 @@
 mode: set
+projects/GoLang-Interns-2022/authorbook/service/authorservice/authorsvc.go:16.46,18.2 1 1
+projects/GoLang-Interns-2022/authorbook/service/authorservice/authorsvc.go:20.73,21.43 1 1
+projects/GoLang-Interns-2022/authorbook/service/authorservice/authorsvc.go:25.2,26.26 2 1
+projects/GoLang-Interns-2022/authorbook/service/authorservice/authorsvc.go:30.2,32.15 2 1
+projects/GoLang-Interns-2022/authorbook/service/authorservice/authorsvc.go:21.43,23.3 1 1
+projects/GoLang-Interns-2022/authorbook/service/authorservice/authorsvc.go:26.26,28.3 1 1
+projects/GoLang-Interns-2022/authorbook/service/authorservice/authorsvc.go:36.80,37.43 1 1
+projects/GoLang-Interns-2022/authorbook/service/authorservice/authorsvc.go:41.2,42.26 2 1
+projects/GoLang-Interns-2022/authorbook/service/authorservice/authorsvc.go:46.2,48.15 2 1
+projects/GoLang-Interns-2022/authorbook/service/authorservice/authorsvc.go:37.43,39.3 1 1
+projects/GoLang-Interns-2022/authorbook/service/authorservice/authorsvc.go:42.26,44.3 1 1
+projects/GoLang-Interns-2022/authorbook/service/authorservice/authorsvc.go:52.52,53.12 1 1
+projects/GoLang-Interns-2022/authorbook/service/authorservice/authorsvc.go:57.2,58.34 2 1
+projects/GoLang-Interns-2022/authorbook/service/authorservice/authorsvc.go:62.2,62.23 1 1
+projects/GoLang-Interns-2022/authorbook/service/authorservice/authorsvc.go:53.12,55.3 1 1
+projects/GoLang-Interns-2022/authorbook/service/authorservice/authorsvc.go:58.34,60.3 1 0
+projects/GoLang-Interns-2022/authorbook/service/authorservice/authorsvc.go:65.32,71.9 5 1
+projects/GoLang-Interns-2022/authorbook/service/authorservice/authorsvc.go:80.2,80.13 1 1
+projects/GoLang-Interns-2022/authorbook/service/authorservice/authorsvc.go:72.28,73.15 1 0
+projects/GoLang-Interns-2022/authorbook/service/authorservice/authorsvc.go:74.32,75.15 1 1
+projects/GoLang-Interns-2022/authorbook/service/authorservice/authorsvc.go:76.17,77.15 1 1
 projects/GoLang-Interns-2022/authorbook/service/bookservice/booksvc.go:16.66,18.2 1 1
 projects/GoLang-Interns-2022/authorbook/service/bookservice/booksvc.go:20.87,26.17 2 1
 projects/GoLang-Interns-2022/authorbook/service/bookservice/booksvc.go:39.2,39.29 1 0
