@@ -1,17 +1,19 @@
 package service
 
-import "projects/GoLang-Interns-2022/authorbook/entities"
+import (
+	"projects/GoLang-Interns-2022/authorbook/entities"
+)
 
 type AuthorService interface {
-	PostAuthor(entities.Author) (entities.Author, error)
-	PutAuthor(entities.Author, int) (entities.Author, error)
-	DeleteAuthor(int) (int, error)
+	Post(author entities.Author) (entities.Author, error)
+	Put(author entities.Author, id int) (entities.Author, error)
+	Delete(id int) (int, error)
 }
 
 type BookService interface {
-	GetAllBook(string, string) []entities.Book
-	GetBookByID(int) (entities.Book, error)
-	PostBook(book *entities.Book) (entities.Book, error)
-	PutBook(book *entities.Book, id int) (entities.Book, error)
-	DeleteBook(int) (int, error)
+	GetAllBook(title string, includeAuthor string) ([]entities.Book, error)
+	GetBookByID(id int) (entities.Book, error)
+	Post(book *entities.Book) (entities.Book, error)
+	Put(book *entities.Book, id int) (entities.Book, error)
+	Delete(id int) (int, error)
 }

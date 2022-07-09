@@ -17,12 +17,12 @@ func New(s store.AuthorStorer) AuthorService {
 	return AuthorService{s}
 }
 
-func (s AuthorService) PostAuthor(a entities.Author) (entities.Author, error) {
+func (s AuthorService) Post(a entities.Author) (entities.Author, error) {
 	if a.FirstName == "" || !checkDob(a.DOB) {
 		return entities.Author{}, errors.New("invalid constraints")
 	}
 
-	id, err := s.datastore.PostAuthor(a)
+	id, err := s.datastore.Post(a)
 	if err != nil || id < 0 {
 		return entities.Author{}, err
 	}
@@ -32,13 +32,13 @@ func (s AuthorService) PostAuthor(a entities.Author) (entities.Author, error) {
 	return a, nil
 }
 
-// PutAuthor : business logic of putauthor
-func (s AuthorService) PutAuthor(a entities.Author, id int) (entities.Author, error) {
+// Put : business logic of putauthor
+func (s AuthorService) Put(a entities.Author, id int) (entities.Author, error) {
 	if a.FirstName == "" || !checkDob(a.DOB) {
 		return entities.Author{}, nil
 	}
 
-	i, err := s.datastore.PutAuthor(a, id)
+	i, err := s.datastore.Put(a, id)
 	if err != nil || i <= 0 {
 		return entities.Author{}, err
 	}
@@ -48,13 +48,13 @@ func (s AuthorService) PutAuthor(a entities.Author, id int) (entities.Author, er
 	return a, nil
 }
 
-// DeleteAuthor : Deletes the author at particular id
-func (s AuthorService) DeleteAuthor(id int) (int, error) {
+// Delete : Deletes the authorhttp at particular id
+func (s AuthorService) Delete(id int) (int, error) {
 	if id < 0 {
 		return 0, nil
 	}
 
-	countRows, err := s.datastore.DeleteAuthor(id)
+	countRows, err := s.datastore.Delete(id)
 	if err != nil || countRows <= 0 {
 		return 0, err
 	}

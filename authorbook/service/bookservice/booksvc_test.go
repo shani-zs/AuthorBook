@@ -21,7 +21,7 @@ func TestGetAllBook(t *testing.T) {
 			{BookID: 2, AuthorID: 1, Title: "book two", Publication: "penguin", PublishedDate: "20/08/2018",
 				Author: entities.Author{}}},
 		},
-		{desc: "getting book with author and particular title", title: "book+two", includeAuthor: "true",
+		{desc: "getting book with authorhttp and particular title", title: "book+two", includeAuthor: "true",
 			expected: []entities.Book{{BookID: 2, AuthorID: 1, Title: "book two", Publication: "penguin",
 				PublishedDate: "20/08/2018", Author: entities.Author{AuthorID: 1, FirstName: "shani",
 					LastName: "kumar", DOB: "30/04/2001", PenName: "sk"}}},
