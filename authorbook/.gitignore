@@ -1,0 +1,4 @@
+../.golangci.yml
+Readme.md
+store/coverage.out
+service/coverage.out
