@@ -39,14 +39,13 @@ func (h AuthorHandler) Post(w http.ResponseWriter, req *http.Request) {
 
 	a, err := h.authorService.Post(author)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	au, err := json.Marshal(a)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-
 		return
 	}
 
@@ -66,6 +65,7 @@ func (h AuthorHandler) Put(w http.ResponseWriter, req *http.Request) {
 
 	err = json.Unmarshal(body, &author)
 	if err != nil {
+		log.Print("3")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -79,9 +79,9 @@ func (h AuthorHandler) Put(w http.ResponseWriter, req *http.Request) {
 
 	author1, err := h.authorService.Put(author, id)
 	if err != nil {
-		_, _ = w.Write([]byte("dose not exist"))
+		log.Print("2")
 		w.WriteHeader(http.StatusInternalServerError)
-
+		_, _ = w.Write([]byte("dose not exist"))
 		return
 	}
 

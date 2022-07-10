@@ -18,12 +18,15 @@ func TestPost(t *testing.T) {
 		RowAffected  int64
 		LastInserted int64
 	}{
-		{desc: "valid authorhttp", body: entities.Author{
+		{desc: "valid author", body: entities.Author{
 			AuthorID: 11, FirstName: "vinod", LastName: "pal", DOB: "20/05/1990", PenName: "Dh"},
 			expectedErr: nil, RowAffected: 1, LastInserted: 11},
-		{desc: "exiting authorhttp", body: entities.Author{
+		{desc: "exiting author", body: entities.Author{
 			AuthorID: 1, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/05/1990", PenName: "Dark horse"},
 			expectedErr: errors.New("already exists"), RowAffected: 0, LastInserted: 0},
+		{desc: "last inserted error", body: entities.Author{
+			AuthorID: 10, FirstName: "vinod", LastName: "pal", DOB: "20/05/1990", PenName: "Dh"},
+			expectedErr: errors.New("error"), RowAffected: 1, LastInserted: 11},
 	}
 
 	db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
@@ -34,10 +37,15 @@ func TestPost(t *testing.T) {
 	defer db.Close()
 
 	for _, tc := range testcases {
-		mock.ExpectExec("insert into authorhttp(author_id,first_name,last_name,dob,pen_name)values(?,?,?,?,?)").
-			WithArgs(tc.body.AuthorID, tc.body.FirstName, tc.body.LastName,
-				tc.body.DOB, tc.body.PenName).WillReturnResult(sqlmock.NewResult(tc.LastInserted, tc.RowAffected)).
-			WillReturnError(tc.expectedErr)
+		if tc.body.AuthorID == 10 {
+			mock.ExpectExec("insert into author(first_name,last_name,dob,pen_name)values(?,?,?,?)").
+				WithArgs(tc.body.FirstName, tc.body.LastName, tc.body.DOB, tc.body.PenName).
+				WillReturnResult(sqlmock.NewErrorResult(tc.expectedErr)).WillReturnError(nil)
+		} else {
+			mock.ExpectExec("insert into author(first_name,last_name,dob,pen_name)values(?,?,?,?)").
+				WithArgs(tc.body.FirstName, tc.body.LastName, tc.body.DOB, tc.body.PenName).
+				WillReturnResult(sqlmock.NewResult(tc.LastInserted, tc.RowAffected)).WillReturnError(tc.expectedErr)
+		}
 
 		s := New(db)
 		_, err = s.Post(tc.body)
@@ -57,10 +65,10 @@ func TestPut(t *testing.T) {
 
 		expectedErr error
 	}{
-		{desc: "invalid authorhttp", body: entities.Author{
+		{desc: "invalid author", body: entities.Author{
 			AuthorID: 4, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/05/1990", PenName: "Dark horse"}, id: 20,
 			RowAffected: 0, LastInserted: 0, expectedErr: errors.New("does not exist")},
-		{desc: "exiting authorhttp", body: entities.Author{
+		{desc: "exiting author", body: entities.Author{
 			AuthorID: 3, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/05/1990", PenName: "Dark horse"}, id: 4,
 			RowAffected: 1, LastInserted: 0, expectedErr: nil},
 	}
@@ -72,10 +80,7 @@ func TestPut(t *testing.T) {
 		}
 		s := New(db)
 
-		mock.ExpectExec("select count(author_id) from authorhttp where author_id=?").WithArgs(tc.id).
-			WillReturnResult(sqlmock.NewResult(tc.LastInserted, tc.RowAffected)).WillReturnError(tc.expectedErr)
-
-		mock.ExpectExec("update authorhttp set author_id=?,first_name=?,last_name=?,dob=?,pen_name=? where author_id=?").
+		mock.ExpectExec("update author set author_id=?,first_name=?,last_name=?,dob=?,pen_name=? where author_id=?").
 			WithArgs(tc.body.AuthorID, tc.body.FirstName, tc.body.LastName, tc.body.DOB, tc.body.PenName, tc.id).
 			WillReturnResult(sqlmock.NewResult(tc.LastInserted, tc.RowAffected)).WillReturnError(tc.expectedErr)
 
@@ -99,6 +104,7 @@ func TestDelete(t *testing.T) {
 	}{
 		{"valid authorId", 4, 1, 0, nil},
 		{"invalid authorId", -1, 0, 0, errors.New("invalid authorID")},
+		{"not existing", 1000, 0, 0, errors.New("not existing")},
 	}
 
 	for _, tc := range testcases {
@@ -106,15 +112,22 @@ func TestDelete(t *testing.T) {
 		if err != nil {
 			log.Print(err)
 		}
-		as := New(db)
 
-		mock.ExpectExec("delete from author where author_id=?").WithArgs(tc.target).
-			WillReturnResult(sqlmock.NewResult(tc.lastInsertedID, tc.rowsAffected)).WillReturnError(tc.expectedErr)
+		as := New(db)
+		if tc.target == 1000 {
+			mock.ExpectExec("delete from author where author_id=?").WithArgs(tc.target).
+				WillReturnResult(sqlmock.NewErrorResult(tc.expectedErr)).WillReturnError(nil)
+		} else {
+			mock.ExpectExec("delete from author where author_id=?").WithArgs(tc.target).
+				WillReturnResult(sqlmock.NewResult(tc.lastInsertedID, tc.rowsAffected)).WillReturnError(tc.expectedErr)
+		}
+
 		_, err = as.Delete(tc.target)
 
 		if err != tc.expectedErr {
 			t.Errorf("failed for %v\n", tc.desc)
 		}
+		db.Close()
 	}
 }
 func TestIncludeAuthor(t *testing.T) {

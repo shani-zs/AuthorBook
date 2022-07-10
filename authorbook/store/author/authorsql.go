@@ -10,6 +10,7 @@ type Store struct {
 	DB *sql.DB
 }
 
+// New : factory function
 func New(db *sql.DB) Store {
 	return Store{db}
 }
@@ -58,6 +59,7 @@ func (s Store) Delete(id int) (int, error) {
 	return int(count), nil
 }
 
+// IncludeAuthor : checks whether an author exists or not if exists then it returns the author detail
 func (s Store) IncludeAuthor(id int) (entities.Author, error) {
 	var author entities.Author
 

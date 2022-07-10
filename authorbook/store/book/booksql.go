@@ -2,7 +2,6 @@ package book
 
 import (
 	"database/sql"
-	"errors"
 	"log"
 	"projects/GoLang-Interns-2022/authorbook/entities"
 )
@@ -64,7 +63,6 @@ func (bs Store) GetBooksByTitle(title string) ([]entities.Book, error) {
 
 		err = Rows.Scan(&book.BookID, &book.AuthorID, &book.Title, &book.Publication, &book.PublishedDate)
 		if err != nil {
-			log.Print(err)
 			return []entities.Book{}, err
 		}
 
@@ -116,11 +114,11 @@ func (bs Store) Put(book *entities.Book, id int) (int, error) {
 	}
 
 	ra, err := res.RowsAffected()
-	if err != nil || ra == 0 {
-		return 0, errors.New("does not exist")
+	if err != nil {
+		return 0, err
 	}
 
-	return book.BookID, nil
+	return int(ra), nil
 }
 
 // Delete : deletes the book by particular id
@@ -131,8 +129,8 @@ func (bs Store) Delete(id int) (int, error) {
 	}
 
 	count, err := result.RowsAffected()
-	if err != nil || count == 0 {
-		return -1, errors.New("could not delete")
+	if err != nil {
+		return -1, err
 	}
 
 	return int(count), nil

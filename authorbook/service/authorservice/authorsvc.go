@@ -2,7 +2,6 @@ package authorservice
 
 import (
 	"errors"
-	"log"
 	"projects/GoLang-Interns-2022/authorbook/entities"
 	"projects/GoLang-Interns-2022/authorbook/store"
 	"strconv"
@@ -25,7 +24,7 @@ func (s AuthorService) Post(a entities.Author) (entities.Author, error) {
 	}
 
 	id, err := s.datastore.Post(a)
-	if err != nil || id < 0 {
+	if err != nil || id <= 0 {
 		return entities.Author{}, err
 	}
 
@@ -37,7 +36,6 @@ func (s AuthorService) Post(a entities.Author) (entities.Author, error) {
 // Put : checks the author before updating
 func (s AuthorService) Put(a entities.Author, id int) (entities.Author, error) {
 	if a.FirstName == "" || !checkDob(a.DOB) {
-		log.Print("1")
 		return entities.Author{}, nil
 	}
 
@@ -48,7 +46,6 @@ func (s AuthorService) Put(a entities.Author, id int) (entities.Author, error) {
 
 	i, err := s.datastore.Put(a, id)
 	if err != nil || i < 0 {
-		log.Print("2")
 		return entities.Author{}, err
 	}
 

@@ -97,13 +97,10 @@ func (b BookService) Put(book *entities.Book, id int) (entities.Book, error) {
 		return entities.Book{}, errors.New("invalid constraints")
 	}
 
-	i, err := b.bookService.Put(book, id)
-	if err != nil || id <= -1 {
-		return entities.Book{}, err
+	count, err := b.bookService.Put(book, id)
+	if err != nil || count <= 0 {
+		return entities.Book{}, errors.New("does not exist")
 	}
-
-	book.BookID = i
-
 	return *book, nil
 }
 
@@ -113,12 +110,12 @@ func (b BookService) Delete(id int) (int, error) {
 		return -1, nil
 	}
 
-	i, err := b.bookService.Delete(id)
-	if err != nil || i == -1 {
-		return -1, err
+	count, err := b.bookService.Delete(id)
+	if err != nil || count <= 0 {
+		return -1, errors.New("does not exist")
 	}
 
-	return i, nil
+	return count, nil
 }
 
 // checkPublication : validates publication
