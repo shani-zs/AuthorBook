@@ -2,11 +2,12 @@ package bookservice
 
 import (
 	"errors"
-	"github.com/golang/mock/gomock"
 	"projects/GoLang-Interns-2022/authorbook/entities"
 	"projects/GoLang-Interns-2022/authorbook/store"
 	"reflect"
 	"testing"
+
+	"github.com/golang/mock/gomock"
 )
 
 func TestGetAllBook(t *testing.T) {
@@ -65,7 +66,6 @@ func TestGetBookByID(t *testing.T) {
 	}
 
 	for _, tc := range Testcases {
-
 		mockBookStore.EXPECT().GetBookByID(tc.targetID).Return(tc.expectedBody, tc.expectedErr).AnyTimes()
 		book, _ := mock.GetBookByID(tc.targetID)
 
@@ -150,7 +150,9 @@ func TestPut(t *testing.T) {
 		if tc.desc != "invalid publication" {
 			mockBookStore.EXPECT().Put(&tc.input, tc.inputID).Return(tc.expected.BookID, tc.expectedErr)
 		}
+
 		book, _ := mock.Put(&tc.input, tc.inputID)
+
 		if !reflect.DeepEqual(book, tc.expected) {
 			t.Errorf("failed for %v\n", tc.desc)
 		}
@@ -179,6 +181,7 @@ func TestDelete(t *testing.T) {
 		if tc.desc != "invalid id" {
 			mockBookStore.EXPECT().Delete(tc.inputID).Return(tc.expectedID, tc.expectedErr)
 		}
+
 		id, _ := mock.Delete(tc.inputID)
 
 		if !reflect.DeepEqual(id, tc.expectedID) {

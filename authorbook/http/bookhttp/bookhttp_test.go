@@ -4,17 +4,21 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"github.com/golang/mock/gomock"
-	"github.com/gorilla/mux"
-	"github.com/stretchr/testify/assert"
 	"log"
-	"net/http"
-	"net/http/httptest"
-	"projects/GoLang-Interns-2022/authorbook/entities"
-	"projects/GoLang-Interns-2022/authorbook/service"
+
 	"reflect"
 	"strconv"
 	"testing"
+
+	"net/http"
+	"net/http/httptest"
+
+	"github.com/golang/mock/gomock"
+	"github.com/gorilla/mux"
+	"github.com/stretchr/testify/assert"
+
+	"projects/GoLang-Interns-2022/authorbook/entities"
+	"projects/GoLang-Interns-2022/authorbook/service"
 )
 
 func TestGetAllBook(t *testing.T) {
@@ -93,6 +97,7 @@ func TestGetBookByID(t *testing.T) {
 		if tc.targetID != "-1" {
 			mockService.EXPECT().GetBookByID(id).Return(tc.expected, tc.expectedErr)
 		}
+
 		mock.GetBookByID(w, req)
 
 		result := w.Result()
@@ -138,15 +143,18 @@ func TestPost(t *testing.T) {
 			log.Printf("failed : %v", err)
 		}
 
-		if tc.desc == "unmarshalling error" {
+		c := "unmarshalling error"
+		if tc.desc == c {
 			data = []byte("shani")
 		}
 
 		req := httptest.NewRequest("POST", "localhost:8000/book", bytes.NewBuffer(data))
 		w := httptest.NewRecorder()
-		if tc.desc == "invalid case" || tc.desc == "valid case" {
+
+		if tc.desc != c {
 			mockService.EXPECT().Post(&tc.body).Return(tc.expected, tc.expectedErr)
 		}
+
 		mock.Post(w, req)
 
 		result := w.Result()
@@ -193,7 +201,8 @@ func TestPut(t *testing.T) {
 			log.Printf("failed : %v", err)
 		}
 
-		if tc.desc == "unmarshalling error" {
+		u := "unmarshalling error"
+		if tc.desc == u {
 			data = []byte("shani")
 		}
 
@@ -202,9 +211,10 @@ func TestPut(t *testing.T) {
 		w := httptest.NewRecorder()
 
 		id, _ := strconv.Atoi(tc.inputID)
-		if tc.desc == "invalid case" || tc.desc == "valid case" {
+		if tc.desc != u {
 			mockService.EXPECT().Put(&tc.input, id).Return(tc.expected, tc.expectedErr)
 		}
+
 		mock.Put(w, req)
 
 		result := w.Result()
@@ -238,7 +248,7 @@ func TestDeleteBook(t *testing.T) {
 		w := httptest.NewRecorder()
 
 		id, _ := strconv.Atoi(tc.inputID)
-		if tc.desc == "valid id" || tc.desc == "invalid case" {
+		if tc.desc != "invalid id" {
 			mockService.EXPECT().Delete(id).Return(1, tc.expectedErr)
 		}
 

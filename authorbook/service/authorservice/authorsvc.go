@@ -45,7 +45,7 @@ func (s AuthorService) Put(a entities.Author, id int) (entities.Author, error) {
 	}
 
 	i, err := s.datastore.Put(a, id)
-	if err != nil || i < 0 {
+	if err != nil {
 		return entities.Author{}, err
 	}
 

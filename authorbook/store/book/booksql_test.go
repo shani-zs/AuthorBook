@@ -2,11 +2,12 @@ package book
 
 import (
 	"errors"
-	"github.com/DATA-DOG/go-sqlmock"
 	"log"
 	"projects/GoLang-Interns-2022/authorbook/entities"
 	"reflect"
 	"testing"
+
+	"github.com/DATA-DOG/go-sqlmock"
 )
 
 func TestGetAllBook(t *testing.T) {
@@ -36,7 +37,6 @@ func TestGetAllBook(t *testing.T) {
 		expectedErr error
 	}{
 		{desc: "getting all books", expected: []entities.Book{book1, book2}, expectedErr: nil},
-		//{desc: "scan error", expected: []entities.Book{}, expectedErr: nil},
 		{desc: "getting all books", expected: []entities.Book{}, expectedErr: errors.New("syntax error")},
 	}
 
@@ -44,6 +44,7 @@ func TestGetAllBook(t *testing.T) {
 		bs := New(db)
 
 		mock.ExpectQuery("SELECT * FROM book").WithArgs().WillReturnRows(books).WillReturnError(tc.expectedErr)
+
 		b, err := bs.GetAllBook()
 		if err != nil {
 			log.Print(err)
@@ -88,11 +89,12 @@ func TestGetBooksByTitle(t *testing.T) {
 	}{
 		{desc: "getting all books", title: "book one", expected: []entities.Book{book1, book2}, expectedErr: nil},
 		{desc: "invalid case", title: "", expected: []entities.Book{}, expectedErr: errors.New("syntax error")},
-		{desc: "scan error", title: "unique", expected: []entities.Book{entities.Book{}}, expectedErr: nil},
+		{desc: "scan error", title: "unique", expected: []entities.Book{book3}, expectedErr: nil},
 	}
 
 	for _, tc := range Testcases {
 		bs := New(db)
+
 		if tc.title != "unique" {
 			mock.ExpectQuery("SELECT * FROM book WHERE title=?").WithArgs().WillReturnRows(books).
 				WillReturnError(tc.expectedErr)
@@ -100,11 +102,13 @@ func TestGetBooksByTitle(t *testing.T) {
 			mock.ExpectQuery("SELECT * FROM book WHERE title=?").WithArgs().WillReturnRows(books1).
 				WillReturnError(tc.expectedErr)
 		}
+
 		b, err := bs.GetBooksByTitle(tc.title)
+
 		if err != nil {
 			log.Print(err)
 		}
-		log.Print(tc.expected, b)
+
 		if !reflect.DeepEqual(b, tc.expected) {
 			t.Errorf("failed for %s", tc.desc)
 		}
@@ -115,10 +119,12 @@ func TestGetBookByID(t *testing.T) {
 	if err != nil {
 		log.Print(err)
 	}
+
 	var (
 		book = entities.Book{BookID: 1,
 			AuthorID: 1, Title: "book one", Publication: "penguin", PublishedDate: "20/06/2000"}
-		book1 = sqlmock.NewRows([]string{"id", "author_id", "title", "publication", "published_date"}).AddRow(book.BookID, book.AuthorID, book.Title, book.Publication, book.PublishedDate)
+		book1 = sqlmock.NewRows([]string{"id", "author_id", "title", "publication", "published_date"}).
+			AddRow(book.BookID, book.AuthorID, book.Title, book.Publication, book.PublishedDate)
 	)
 
 	Testcases := []struct {
@@ -137,7 +143,9 @@ func TestGetBookByID(t *testing.T) {
 
 	for _, tc := range Testcases {
 		bs := New(db)
+
 		mock.ExpectQuery("select * from book where id=?").WithArgs(tc.targetID).WillReturnRows(book1).WillReturnError(tc.expectedErr)
+
 		b, err := bs.GetBookByID(tc.targetID)
 		if err != nil {
 			log.Print(err)
@@ -265,6 +273,7 @@ func TestDelete(t *testing.T) {
 		}
 
 		bs := New(db)
+
 		if tc.target != 100 {
 			mock.ExpectExec("delete from book where id=?").WithArgs(tc.target).
 				WillReturnResult(sqlmock.NewResult(tc.lastInsertedID, tc.rowsAffected)).WillReturnError(tc.expectedErr)

@@ -78,6 +78,7 @@ func TestPut(t *testing.T) {
 		if err != nil {
 			log.Print(err)
 		}
+
 		s := New(db)
 
 		mock.ExpectExec("update author set author_id=?,first_name=?,last_name=?,dob=?,pen_name=? where author_id=?").
@@ -89,6 +90,7 @@ func TestPut(t *testing.T) {
 		if err != tc.expectedErr {
 			t.Errorf("failed for %v\n, expected: %v, got: %v", tc.desc, tc.expectedErr, err)
 		}
+
 		db.Close()
 	}
 }
@@ -114,6 +116,7 @@ func TestDelete(t *testing.T) {
 		}
 
 		as := New(db)
+
 		if tc.target == 1000 {
 			mock.ExpectExec("delete from author where author_id=?").WithArgs(tc.target).
 				WillReturnResult(sqlmock.NewErrorResult(tc.expectedErr)).WillReturnError(nil)
@@ -127,6 +130,7 @@ func TestDelete(t *testing.T) {
 		if err != tc.expectedErr {
 			t.Errorf("failed for %v\n", tc.desc)
 		}
+
 		db.Close()
 	}
 }
@@ -135,6 +139,7 @@ func TestIncludeAuthor(t *testing.T) {
 	if err != nil {
 		log.Print(err)
 	}
+
 	var (
 		author  = entities.Author{AuthorID: 1, FirstName: "shani", LastName: "kumar", DOB: "20/06/2000", PenName: "sk"}
 		author1 = sqlmock.NewRows([]string{"author_id", "first_name", "last_name", "dob", "pen_name"}).AddRow(author.AuthorID,
@@ -156,7 +161,9 @@ func TestIncludeAuthor(t *testing.T) {
 
 	for _, tc := range Testcases {
 		bs := New(db)
+
 		mock.ExpectQuery("SELECT * FROM author where author_id=?").WithArgs(tc.targetID).WillReturnRows(author1).WillReturnError(tc.expectedErr)
+
 		a, err := bs.IncludeAuthor(tc.targetID)
 		if err != nil {
 			log.Print(err)

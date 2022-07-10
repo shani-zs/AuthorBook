@@ -4,17 +4,17 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
-	"github.com/golang/mock/gomock"
-	"io"
 	"log"
-	"net/http"
-	"net/http/httptest"
-	"projects/GoLang-Interns-2022/authorbook/entities"
-	"projects/GoLang-Interns-2022/authorbook/service"
 	"strconv"
 	"testing"
 
+	"net/http"
+	"net/http/httptest"
+
+	"projects/GoLang-Interns-2022/authorbook/entities"
+	"projects/GoLang-Interns-2022/authorbook/service"
+
+	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 )
 
@@ -47,10 +47,7 @@ func TestPost(t *testing.T) {
 	}
 
 	for _, tc := range testcases {
-		data, err := json.Marshal(tc.input)
-		if err != nil {
-			log.Print(err)
-		}
+		data, _ := json.Marshal(tc.input)
 
 		if tc.desc == "unmarshalling error " {
 			data = []byte("hello")
@@ -58,29 +55,17 @@ func TestPost(t *testing.T) {
 
 		req := httptest.NewRequest("POST", "localhost:8000/author", bytes.NewReader(data))
 		w := httptest.NewRecorder()
+
 		if tc.input.AuthorID == 4 {
 			mockService.EXPECT().Post(tc.input).Return(tc.expected, tc.expectedErr)
 		} else {
 			mockService.EXPECT().Post(tc.input).Return(tc.expected, tc.expectedErr).AnyTimes()
 		}
+
 		mock.Post(w, req)
 
-		var a entities.Author
-
 		res := w.Result()
-		body, err := io.ReadAll(res.Body)
-		if err != nil {
-			log.Print(err)
-		}
-
-		err = json.Unmarshal(body, &a)
-		if err != nil {
-			log.Print(err)
-		}
-
-		fmt.Println(tc.expectedStatus, res.StatusCode)
 		if tc.expectedStatus != res.StatusCode {
-
 			t.Errorf("failed for %v\n", tc.desc)
 		}
 	}
@@ -92,21 +77,20 @@ func TestPutAuthor(t *testing.T) {
 	mock := New(mockService)
 
 	testcases := []struct {
-		desc     string
-		input    entities.Author
-		TargetID string
-
+		desc           string
+		input          entities.Author
+		TargetID       string
 		expected       entities.Author
 		expectedStatus int
 		expectedErr    error
 	}{
 		{desc: "valid case:", input: entities.Author{
-			AuthorID: 3, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/01/1990", PenName: "Dark horse"},
-			TargetID: "4", expected: entities.Author{AuthorID: 3, FirstName: "nilotpal",
-				LastName: "mrinal", DOB: "20/01/1990", PenName: "Dark horse"}, expectedStatus: http.StatusCreated,
+			AuthorID: 3, FirstName: "amit", LastName: "kumar", DOB: "20/01/1990", PenName: "Dark horse"},
+			TargetID: "4", expected: entities.Author{AuthorID: 3, FirstName: "amit",
+				LastName: "kumar", DOB: "20/01/1990", PenName: "Dark horse"}, expectedStatus: http.StatusCreated,
 			expectedErr: nil,
 		},
-		{desc: "strconv error", input: entities.Author{AuthorID: 3, FirstName: "nilotpal", LastName: "mrinal",
+		{desc: "strconv error", input: entities.Author{AuthorID: 3, FirstName: "kumar", LastName: "vis",
 			DOB: "20/01/1990", PenName: "Dark horse"}, expected: entities.Author{},
 			expectedStatus: http.StatusBadRequest, expectedErr: nil,
 		},

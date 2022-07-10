@@ -107,6 +107,7 @@ func (h BookHandler) Post(w http.ResponseWriter, req *http.Request) {
 	data, err := json.Marshal(book1)
 	if err != nil {
 		log.Print(err)
+
 		_, _ = w.Write([]byte("could not read!"))
 
 		return
@@ -143,6 +144,7 @@ func (h BookHandler) Put(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		log.Print(err)
+
 		return
 	}
 
@@ -164,6 +166,7 @@ func (h BookHandler) Delete(w http.ResponseWriter, req *http.Request) {
 	if err != nil || id < 0 {
 		w.WriteHeader(http.StatusBadRequest)
 		log.Print(err)
+
 		return
 	}
 

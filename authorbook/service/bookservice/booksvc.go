@@ -101,6 +101,7 @@ func (b BookService) Put(book *entities.Book, id int) (entities.Book, error) {
 	if err != nil || count <= 0 {
 		return entities.Book{}, errors.New("does not exist")
 	}
+
 	return *book, nil
 }
 

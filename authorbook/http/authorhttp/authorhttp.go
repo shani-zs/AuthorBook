@@ -67,10 +67,12 @@ func (h AuthorHandler) Put(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		log.Print("3")
 		w.WriteHeader(http.StatusBadRequest)
+
 		return
 	}
 
 	params := mux.Vars(req)
+
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -82,6 +84,7 @@ func (h AuthorHandler) Put(w http.ResponseWriter, req *http.Request) {
 		log.Print("2")
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write([]byte("dose not exist"))
+
 		return
 	}
 
@@ -115,5 +118,4 @@ func (h AuthorHandler) Delete(w http.ResponseWriter, req *http.Request) {
 
 	w.WriteHeader(http.StatusNoContent)
 	_, _ = w.Write([]byte("successfully deleted!"))
-
 }

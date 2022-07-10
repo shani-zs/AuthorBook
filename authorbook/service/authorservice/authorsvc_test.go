@@ -2,10 +2,11 @@ package authorservice
 
 import (
 	"errors"
-	"github.com/golang/mock/gomock"
 	"projects/GoLang-Interns-2022/authorbook/entities"
 	"projects/GoLang-Interns-2022/authorbook/store"
 	"testing"
+
+	"github.com/golang/mock/gomock"
 )
 
 func TestPost(t *testing.T) {
@@ -90,10 +91,12 @@ func TestPut(t *testing.T) {
 		},
 	}
 	author := entities.Author{AuthorID: 5, FirstName: "nilotpal", LastName: "mrinal", DOB: "20/05/1990", PenName: "Dark horse"}
+
 	for _, tc := range testcases {
 		if tc.input.AuthorID == 4 && tc.targetID == 10 {
 			mockStore.EXPECT().IncludeAuthor(tc.targetID).Return(author, tc.expectedErr)
 		}
+
 		if tc.input.AuthorID == 4 && tc.targetID == 5 {
 			mockStore.EXPECT().IncludeAuthor(tc.targetID).Return(author, nil)
 			mockStore.EXPECT().Put(tc.input, tc.targetID).Return(tc.input.AuthorID, tc.expectedErr)
