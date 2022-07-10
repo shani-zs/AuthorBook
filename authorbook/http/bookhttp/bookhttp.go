@@ -16,10 +16,12 @@ type BookHandler struct {
 	bookH service.BookService
 }
 
+// New : factory function
 func New(bookS service.BookService) BookHandler {
 	return BookHandler{bookS}
 }
 
+// GetAllBook : handles the request of getting all books
 func (h BookHandler) GetAllBook(w http.ResponseWriter, req *http.Request) {
 	title := req.URL.Query().Get("title")
 	includeAuthor := req.URL.Query().Get("includeAuthor")
@@ -44,6 +46,7 @@ func (h BookHandler) GetAllBook(w http.ResponseWriter, req *http.Request) {
 	_, _ = w.Write(data)
 }
 
+// GetBookByID : handles the request of getting a book
 func (h BookHandler) GetBookByID(w http.ResponseWriter, req *http.Request) {
 	params := mux.Vars(req)
 
@@ -73,6 +76,7 @@ func (h BookHandler) GetBookByID(w http.ResponseWriter, req *http.Request) {
 	_, _ = w.Write(data)
 }
 
+// Post : handles the request of posting a book
 func (h BookHandler) Post(w http.ResponseWriter, req *http.Request) {
 	var book entities.Book
 
@@ -95,7 +99,7 @@ func (h BookHandler) Post(w http.ResponseWriter, req *http.Request) {
 	book1, err := h.bookH.Post(&book)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		_, _ = w.Write([]byte("could not read!"))
+		_, _ = w.Write([]byte("author does exist!"))
 
 		return
 	}
@@ -112,6 +116,7 @@ func (h BookHandler) Post(w http.ResponseWriter, req *http.Request) {
 	_, _ = w.Write(data)
 }
 
+// Put : handle the request of updating a book
 func (h BookHandler) Put(w http.ResponseWriter, req *http.Request) {
 	body, err := io.ReadAll(req.Body)
 	if err != nil {
@@ -151,6 +156,7 @@ func (h BookHandler) Put(w http.ResponseWriter, req *http.Request) {
 	_, _ = w.Write(data)
 }
 
+// Delete : handles the request of removing a book
 func (h BookHandler) Delete(w http.ResponseWriter, req *http.Request) {
 	params := mux.Vars(req)
 

@@ -23,15 +23,14 @@ func main() {
 	defer DB.Close()
 
 	authorStore := author.New(DB)
-	bookStore := book.New(DB)
-
 	authorService := authorservice.New(authorStore)
 	authorHandler := authorhttp.New(authorService)
-	// authorhttp endpoints
-	r.HandleFunc("/authorhttp", authorHandler.Post).Methods("POST")
-	r.HandleFunc("/authorhttp/{id}", authorHandler.Put).Methods("PUT")
-	r.HandleFunc("/authorhttp/{id}", authorHandler.Delete).Methods("DELETE")
+	// author endpoints
+	r.HandleFunc("/author", authorHandler.Post).Methods("POST")
+	r.HandleFunc("/author/{id}", authorHandler.Put).Methods("PUT")
+	r.HandleFunc("/author/{id}", authorHandler.Delete).Methods("DELETE")
 
+	bookStore := book.New(DB)
 	bookService := bookservice.New(bookStore, authorStore)
 	bookHandler := bookhttp.New(bookService)
 	// book  endpoints
@@ -43,6 +42,6 @@ func main() {
 
 	err := http.ListenAndServe(":8000", r)
 	if err != nil {
-		log.Print(err)
+		log.Fatal(err)
 	}
 }

@@ -13,10 +13,12 @@ type BookService struct {
 	authorService store.AuthorStorer
 }
 
+// New : factory function
 func New(bs store.BookStorer, as store.AuthorStorer) BookService {
 	return BookService{bs, as}
 }
 
+// GetAllBook : implements the logic of getting all book
 func (b BookService) GetAllBook(title, includeAuthor string) ([]entities.Book, error) {
 	var (
 		books []entities.Book
@@ -36,6 +38,7 @@ func (b BookService) GetAllBook(title, includeAuthor string) ([]entities.Book, e
 			return []entities.Book{}, err
 		}
 	}
+
 	if includeAuthor == "true" {
 		for i := range books {
 			author, err := b.authorService.IncludeAuthor(books[i].AuthorID)
@@ -51,6 +54,7 @@ func (b BookService) GetAllBook(title, includeAuthor string) ([]entities.Book, e
 	return books, nil
 }
 
+// GetBookByID : implements the logic of getting a single by
 func (b BookService) GetBookByID(id int) (entities.Book, error) {
 	if id <= 0 {
 		return entities.Book{}, errors.New("invalid id")
@@ -65,24 +69,32 @@ func (b BookService) GetBookByID(id int) (entities.Book, error) {
 	return book, nil
 }
 
+// Post : checks the book before posting
 func (b BookService) Post(book *entities.Book) (entities.Book, error) {
 	if book.Title == "" || book.AuthorID < 0 || checkPublication(book.Publication) {
 		return entities.Book{}, errors.New("invalid constraints")
 	}
 
-	id, err := b.bookService.Post(book)
-	if err != nil || id == -1 {
+	existAuthor, err := b.authorService.IncludeAuthor(book.AuthorID)
+	if err != nil {
 		return entities.Book{}, err
 	}
 
+	id, err := b.bookService.Post(book)
+	if err != nil || id == -1 {
+		return entities.Book{}, errors.New("database issue")
+	}
+
+	book.Author = existAuthor
 	book.BookID = id
 
 	return *book, nil
 }
 
+// Put :  checks the book before updating
 func (b BookService) Put(book *entities.Book, id int) (entities.Book, error) {
 	if book.Title == "" || book.AuthorID <= 0 || checkPublication(book.Publication) {
-		return entities.Book{}, nil
+		return entities.Book{}, errors.New("invalid constraints")
 	}
 
 	i, err := b.bookService.Put(book, id)
@@ -95,6 +107,7 @@ func (b BookService) Put(book *entities.Book, id int) (entities.Book, error) {
 	return *book, nil
 }
 
+// Delete : checks before deleting a book
 func (b BookService) Delete(id int) (int, error) {
 	if id < 0 {
 		return -1, nil
@@ -108,6 +121,7 @@ func (b BookService) Delete(id int) (int, error) {
 	return i, nil
 }
 
+// checkPublication : validates publication
 func checkPublication(publication string) bool {
 	_ = strings.ToLower(publication)
 

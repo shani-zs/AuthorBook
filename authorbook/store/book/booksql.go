@@ -2,6 +2,7 @@ package book
 
 import (
 	"database/sql"
+	"errors"
 	"log"
 	"projects/GoLang-Interns-2022/authorbook/entities"
 )
@@ -10,10 +11,12 @@ type Store struct {
 	DB *sql.DB
 }
 
+// New : factory function used for dependency injection
 func New(db *sql.DB) Store {
 	return Store{db}
 }
 
+// GetAllBook : fetches the all book from database
 func (bs Store) GetAllBook() ([]entities.Book, error) {
 	var (
 		books []entities.Book
@@ -41,10 +44,12 @@ func (bs Store) GetAllBook() ([]entities.Book, error) {
 	return books, nil
 }
 
+// GetBooksByTitle : give the books with particular title
 func (bs Store) GetBooksByTitle(title string) ([]entities.Book, error) {
 	var (
-		Rows *sql.Rows
-		err  error
+		books []entities.Book
+		Rows  *sql.Rows
+		err   error
 	)
 
 	Rows, err = bs.DB.Query("SELECT * FROM book WHERE title=?", title)
@@ -52,8 +57,7 @@ func (bs Store) GetBooksByTitle(title string) ([]entities.Book, error) {
 		log.Print(err)
 		return []entities.Book{}, err
 	}
-
-	var books []entities.Book
+	defer Rows.Close()
 
 	for Rows.Next() {
 		var book entities.Book
@@ -70,27 +74,23 @@ func (bs Store) GetBooksByTitle(title string) ([]entities.Book, error) {
 	return books, nil
 }
 
+// GetBookByID : give the book with particular id
 func (bs Store) GetBookByID(id int) (entities.Book, error) {
-	var b entities.Book
+	var book entities.Book
 
 	row := bs.DB.QueryRow("select * from book where id=?", id)
 
-	err := row.Scan(&b.BookID, &b.AuthorID, &b.Title, &b.Publication, &b.PublishedDate)
+	err := row.Scan(&book.BookID, &book.AuthorID, &book.Title, &book.Publication, &book.PublishedDate)
 	if err != nil {
 		log.Print(err)
 		return entities.Book{}, err
 	}
 
-	return b, nil
+	return book, nil
 }
 
+// Post : inserts the book into database
 func (bs Store) Post(book *entities.Book) (int, error) {
-	// checking the authorhttp existing in the table table or not
-	//_, err := bs.DB.Exec("select count(author_id) from authorhttp where author_id=?", book.AuthorID)
-	//if err != nil{
-	//	return 0, err
-	//}
-
 	result, err := bs.DB.Exec("insert into book(author_id,title,publication,published_date)values(?,?,?,?)",
 		book.AuthorID, book.Title, book.Publication, book.PublishedDate)
 	if err != nil {
@@ -107,21 +107,23 @@ func (bs Store) Post(book *entities.Book) (int, error) {
 	return int(id), nil
 }
 
+// Put : updates the book with particular id
 func (bs Store) Put(book *entities.Book, id int) (int, error) {
-	result, err := bs.DB.Exec("update book set id=?,author_id=?,title=?,publication=?,published_date=? where id=?",
+	res, err := bs.DB.Exec("update book set id=?,author_id=?,title=?,publication=?,published_date=? where id=?",
 		book.BookID, book.AuthorID, book.Title, book.Publication, book.PublishedDate, id)
 	if err != nil {
 		return 0, err
 	}
 
-	i, err := result.LastInsertId()
-	if err != nil {
-		return -1, err
+	ra, err := res.RowsAffected()
+	if err != nil || ra == 0 {
+		return 0, errors.New("does not exist")
 	}
 
-	return int(i), nil
+	return book.BookID, nil
 }
 
+// Delete : deletes the book by particular id
 func (bs Store) Delete(id int) (int, error) {
 	result, err := bs.DB.Exec("delete from book where id=?", id)
 	if err != nil {
@@ -129,8 +131,8 @@ func (bs Store) Delete(id int) (int, error) {
 	}
 
 	count, err := result.RowsAffected()
-	if err != nil {
-		return -1, err
+	if err != nil || count == 0 {
+		return -1, errors.New("could not delete")
 	}
 
 	return int(count), nil
