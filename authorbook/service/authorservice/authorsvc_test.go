@@ -9,6 +9,7 @@ import (
 	"github.com/golang/mock/gomock"
 )
 
+// TestPost : test the logic of posting an author
 func TestPost(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mockStore := store.NewMockAuthorStorer(ctrl)
@@ -55,6 +56,7 @@ func TestPost(t *testing.T) {
 	}
 }
 
+// TestPut : test the logic of updating an author
 func TestPut(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mockStore := store.NewMockAuthorStorer(ctrl)
@@ -110,6 +112,7 @@ func TestPut(t *testing.T) {
 	}
 }
 
+// TestDelete : test logic of deleting an author
 func TestDelete(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mockStore := store.NewMockAuthorStorer(ctrl)

@@ -21,6 +21,7 @@ import (
 	"projects/GoLang-Interns-2022/authorbook/service"
 )
 
+// TestGetAllBook : test the GetAllBook handler
 func TestGetAllBook(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mockService := service.NewMockBookService(ctrl)
@@ -66,6 +67,7 @@ func TestGetAllBook(t *testing.T) {
 	}
 }
 
+// TestGetBookByID : test the GetBookByID
 func TestGetBookByID(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mockService := service.NewMockBookService(ctrl)
@@ -108,6 +110,7 @@ func TestGetBookByID(t *testing.T) {
 	}
 }
 
+// TestPost : test the post
 func TestPost(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mockService := service.NewMockBookService(ctrl)
@@ -165,6 +168,7 @@ func TestPost(t *testing.T) {
 	}
 }
 
+// TestPut : test the put
 func TestPut(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mockService := service.NewMockBookService(ctrl)
@@ -225,7 +229,8 @@ func TestPut(t *testing.T) {
 	}
 }
 
-func TestDeleteBook(t *testing.T) {
+// TestDelete : test the delete book handler
+func TestDelete(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mockService := service.NewMockBookService(ctrl)
 	mock := New(mockService)

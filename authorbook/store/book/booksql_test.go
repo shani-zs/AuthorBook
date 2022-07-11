@@ -10,6 +10,7 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 )
 
+// TestGetAllBook : to test GetAllBook
 func TestGetAllBook(t *testing.T) {
 	db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
 	if err != nil {
@@ -55,6 +56,8 @@ func TestGetAllBook(t *testing.T) {
 		}
 	}
 }
+
+// TestGetBooksByTitle : to test GetBooksByTitle
 func TestGetBooksByTitle(t *testing.T) {
 	db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
 	if err != nil {
@@ -114,6 +117,8 @@ func TestGetBooksByTitle(t *testing.T) {
 		}
 	}
 }
+
+// TestGetBookByID : to test GetBookByID
 func TestGetBookByID(t *testing.T) {
 	db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
 	if err != nil {
@@ -156,6 +161,8 @@ func TestGetBookByID(t *testing.T) {
 		}
 	}
 }
+
+// TestPost : to test the post
 func TestPost(t *testing.T) {
 	testcases := []struct {
 		desc  string
@@ -203,6 +210,8 @@ func TestPost(t *testing.T) {
 		}
 	}
 }
+
+// TestPut : to test the put
 func TestPut(t *testing.T) {
 	testcases := []struct {
 		desc     string
@@ -251,6 +260,8 @@ func TestPut(t *testing.T) {
 		}
 	}
 }
+
+// TestDelete : to test delete method
 func TestDelete(t *testing.T) {
 	testcases := []struct {
 		// input

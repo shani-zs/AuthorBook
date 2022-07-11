@@ -10,6 +10,7 @@ import (
 	"github.com/golang/mock/gomock"
 )
 
+// TestGetAllBook : test the business logic of getting all book
 func TestGetAllBook(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mockAuthorStore := store.NewMockAuthorStorer(ctrl)
@@ -46,6 +47,7 @@ func TestGetAllBook(t *testing.T) {
 	}
 }
 
+// TestGetBookByID : to test getBookByID
 func TestGetBookByID(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mockAuthorStore := store.NewMockAuthorStorer(ctrl)
@@ -75,6 +77,7 @@ func TestGetBookByID(t *testing.T) {
 	}
 }
 
+// TestPost : to test post method
 func TestPost(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mockAuthorStore := store.NewMockAuthorStorer(ctrl)
@@ -118,6 +121,7 @@ func TestPost(t *testing.T) {
 	}
 }
 
+// TestPut : to test the put method
 func TestPut(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mockAuthorStore := store.NewMockAuthorStorer(ctrl)
@@ -159,6 +163,7 @@ func TestPut(t *testing.T) {
 	}
 }
 
+// TestDelete : to test delete method
 func TestDelete(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mockAuthorStore := store.NewMockAuthorStorer(ctrl)

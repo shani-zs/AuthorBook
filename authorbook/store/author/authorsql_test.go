@@ -9,6 +9,7 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 )
 
+// TestPost : to test post an author
 func TestPost(t *testing.T) {
 	testcases := []struct {
 		desc string
@@ -55,6 +56,8 @@ func TestPost(t *testing.T) {
 		}
 	}
 }
+
+// TestPut : to test the updating an author
 func TestPut(t *testing.T) {
 	testcases := []struct {
 		desc         string
@@ -94,6 +97,8 @@ func TestPut(t *testing.T) {
 		db.Close()
 	}
 }
+
+// TestDelete : to test deleting an author
 func TestDelete(t *testing.T) {
 	testcases := []struct {
 		// input
@@ -134,6 +139,8 @@ func TestDelete(t *testing.T) {
 		db.Close()
 	}
 }
+
+// TestIncludeAuthor : to test IncludeAuthor
 func TestIncludeAuthor(t *testing.T) {
 	db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
 	if err != nil {

@@ -18,6 +18,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// TestPost : to test Post handler
 func TestPost(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mockService := service.NewMockAuthorService(ctrl)
@@ -71,7 +72,8 @@ func TestPost(t *testing.T) {
 	}
 }
 
-func TestPutAuthor(t *testing.T) {
+// TestPut : to test the put handler
+func TestPut(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mockService := service.NewMockAuthorService(ctrl)
 	mock := New(mockService)
@@ -126,7 +128,8 @@ func TestPutAuthor(t *testing.T) {
 	}
 }
 
-func TestDeleteAuthor(t *testing.T) {
+// TestDelete : to test the delete handler
+func TestDelete(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mockService := service.NewMockAuthorService(ctrl)
 	mock := New(mockService)
