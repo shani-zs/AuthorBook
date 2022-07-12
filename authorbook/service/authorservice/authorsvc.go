@@ -1,6 +1,7 @@
 package authorservice
 
 import (
+	"context"
 	"errors"
 	"projects/GoLang-Interns-2022/authorbook/entities"
 	"projects/GoLang-Interns-2022/authorbook/store"
@@ -18,12 +19,12 @@ func New(s store.AuthorStorer) AuthorService {
 }
 
 // Post : checks the author before posting
-func (s AuthorService) Post(a entities.Author) (entities.Author, error) {
+func (s AuthorService) Post(ctx context.Context, a entities.Author) (entities.Author, error) {
 	if a.FirstName == "" || !checkDob(a.DOB) {
 		return entities.Author{}, errors.New("invalid constraints")
 	}
 
-	id, err := s.datastore.Post(a)
+	id, err := s.datastore.Post(ctx, a)
 	if err != nil || id <= 0 {
 		return entities.Author{}, err
 	}
@@ -34,17 +35,17 @@ func (s AuthorService) Post(a entities.Author) (entities.Author, error) {
 }
 
 // Put : checks the author before updating
-func (s AuthorService) Put(a entities.Author, id int) (entities.Author, error) {
+func (s AuthorService) Put(ctx context.Context, a entities.Author, id int) (entities.Author, error) {
 	if a.FirstName == "" || !checkDob(a.DOB) {
 		return entities.Author{}, nil
 	}
 
-	existAuthor, err := s.datastore.IncludeAuthor(id)
+	existAuthor, err := s.datastore.IncludeAuthor(ctx, id)
 	if err != nil || existAuthor.AuthorID != id {
 		return entities.Author{}, errors.New("dose not exist")
 	}
 
-	i, err := s.datastore.Put(a, id)
+	i, err := s.datastore.Put(ctx, a, id)
 	if err != nil {
 		return entities.Author{}, err
 	}
@@ -55,12 +56,12 @@ func (s AuthorService) Put(a entities.Author, id int) (entities.Author, error) {
 }
 
 // Delete : Deletes the author at particular id
-func (s AuthorService) Delete(id int) (int, error) {
+func (s AuthorService) Delete(ctx context.Context, id int) (int, error) {
 	if id < 0 {
 		return 0, errors.New("invalid id")
 	}
 
-	countRows, err := s.datastore.Delete(id)
+	countRows, err := s.datastore.Delete(ctx, id)
 	if err != nil || countRows <= 0 {
 		return 0, errors.New("does not exist")
 	}

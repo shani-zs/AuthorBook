@@ -1,6 +1,7 @@
 package bookservice
 
 import (
+	"context"
 	"errors"
 	"projects/GoLang-Interns-2022/authorbook/entities"
 	"projects/GoLang-Interns-2022/authorbook/store"
@@ -36,10 +37,10 @@ func TestGetAllBook(t *testing.T) {
 	}
 
 	for _, tc := range Testcases {
-		mockBookStore.EXPECT().GetAllBook().Return(tc.expected, tc.expetedErr).AnyTimes()
-		mockBookStore.EXPECT().GetBooksByTitle(tc.title).Return(tc.expected, tc.expetedErr).AnyTimes()
+		mockBookStore.EXPECT().GetAllBook(context.TODO()).Return(tc.expected, tc.expetedErr).AnyTimes()
+		mockBookStore.EXPECT().GetBooksByTitle(context.TODO(), tc.title).Return(tc.expected, tc.expetedErr).AnyTimes()
 
-		books, _ := mock.GetAllBook(tc.title, tc.includeAuthor)
+		books, _ := mock.GetAllBook(context.TODO(), tc.title, tc.includeAuthor)
 
 		if !reflect.DeepEqual(books, tc.expected) {
 			t.Errorf("failed for %v\n", tc.desc)
@@ -68,8 +69,8 @@ func TestGetBookByID(t *testing.T) {
 	}
 
 	for _, tc := range Testcases {
-		mockBookStore.EXPECT().GetBookByID(tc.targetID).Return(tc.expectedBody, tc.expectedErr).AnyTimes()
-		book, _ := mock.GetBookByID(tc.targetID)
+		mockBookStore.EXPECT().GetBookByID(context.TODO(), tc.targetID).Return(tc.expectedBody, tc.expectedErr).AnyTimes()
+		book, _ := mock.GetBookByID(context.TODO(), tc.targetID)
 
 		if !reflect.DeepEqual(book, tc.expectedBody) {
 			t.Errorf("failed for %v\n", tc.desc)
@@ -111,10 +112,10 @@ func TestPost(t *testing.T) {
 		},
 	}
 	for _, tc := range testcases {
-		mockBookStore.EXPECT().Post(&tc.input).Return(tc.expected.BookID, tc.expectedErr).AnyTimes()
-		mockAuthorStore.EXPECT().IncludeAuthor(tc.input.AuthorID).Return(tc.input.Author, tc.expectedErr1).AnyTimes()
+		mockBookStore.EXPECT().Post(context.TODO(), &tc.input).Return(tc.expected.BookID, tc.expectedErr).AnyTimes()
+		mockAuthorStore.EXPECT().IncludeAuthor(context.TODO(), tc.input.AuthorID).Return(tc.input.Author, tc.expectedErr1).AnyTimes()
 
-		book, _ := mock.Post(&tc.input)
+		book, _ := mock.Post(context.TODO(), &tc.input)
 		if !reflect.DeepEqual(book, tc.expected) {
 			t.Errorf("failed for %v\n", tc.desc)
 		}
@@ -152,10 +153,10 @@ func TestPut(t *testing.T) {
 	}
 	for _, tc := range testcases {
 		if tc.desc != "invalid publication" {
-			mockBookStore.EXPECT().Put(&tc.input, tc.inputID).Return(tc.expected.BookID, tc.expectedErr)
+			mockBookStore.EXPECT().Put(context.TODO(), &tc.input, tc.inputID).Return(tc.expected.BookID, tc.expectedErr)
 		}
 
-		book, _ := mock.Put(&tc.input, tc.inputID)
+		book, _ := mock.Put(context.TODO(), &tc.input, tc.inputID)
 
 		if !reflect.DeepEqual(book, tc.expected) {
 			t.Errorf("failed for %v\n", tc.desc)
@@ -184,10 +185,10 @@ func TestDelete(t *testing.T) {
 
 	for _, tc := range testcases {
 		if tc.desc != "invalid id" {
-			mockBookStore.EXPECT().Delete(tc.inputID).Return(tc.expectedID, tc.expectedErr)
+			mockBookStore.EXPECT().Delete(context.TODO(), tc.inputID).Return(tc.expectedID, tc.expectedErr)
 		}
 
-		id, _ := mock.Delete(tc.inputID)
+		id, _ := mock.Delete(context.TODO(), tc.inputID)
 
 		if !reflect.DeepEqual(id, tc.expectedID) {
 			t.Errorf("failed for %v\n", tc.desc)

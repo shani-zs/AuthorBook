@@ -36,8 +36,9 @@ func (h AuthorHandler) Post(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	ctx := req.Context()
 
-	a, err := h.authorService.Post(author)
+	a, err := h.authorService.Post(ctx, author)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -78,8 +79,9 @@ func (h AuthorHandler) Put(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	ctx := req.Context()
 
-	author1, err := h.authorService.Put(author, id)
+	author1, err := h.authorService.Put(ctx, author, id)
 	if err != nil {
 		log.Print("2")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -107,8 +109,9 @@ func (h AuthorHandler) Delete(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	ctx := req.Context()
 
-	_, err = h.authorService.Delete(id)
+	_, err = h.authorService.Delete(ctx, id)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write([]byte("could not delete"))

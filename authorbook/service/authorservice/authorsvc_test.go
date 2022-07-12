@@ -1,6 +1,7 @@
 package authorservice
 
 import (
+	"context"
 	"errors"
 	"projects/GoLang-Interns-2022/authorbook/entities"
 	"projects/GoLang-Interns-2022/authorbook/store"
@@ -46,9 +47,9 @@ func TestPost(t *testing.T) {
 	}
 
 	for _, tc := range testcases {
-		mockStore.EXPECT().Post(tc.body).Return(tc.expectedID, tc.expectedErr).AnyTimes()
+		mockStore.EXPECT().Post(context.TODO(), tc.body).Return(tc.expectedID, tc.expectedErr).AnyTimes()
 
-		a, _ := mock.Post(tc.body)
+		a, _ := mock.Post(context.TODO(), tc.body)
 
 		if a != tc.expectedAuthor {
 			t.Errorf("failed for %v\n", tc.desc)
@@ -96,15 +97,15 @@ func TestPut(t *testing.T) {
 
 	for _, tc := range testcases {
 		if tc.input.AuthorID == 4 && tc.targetID == 10 {
-			mockStore.EXPECT().IncludeAuthor(tc.targetID).Return(author, tc.expectedErr)
+			mockStore.EXPECT().IncludeAuthor(context.TODO(), tc.targetID).Return(author, tc.expectedErr)
 		}
 
 		if tc.input.AuthorID == 4 && tc.targetID == 5 {
-			mockStore.EXPECT().IncludeAuthor(tc.targetID).Return(author, nil)
-			mockStore.EXPECT().Put(tc.input, tc.targetID).Return(tc.input.AuthorID, tc.expectedErr)
+			mockStore.EXPECT().IncludeAuthor(context.TODO(), tc.targetID).Return(author, nil)
+			mockStore.EXPECT().Put(context.TODO(), tc.input, tc.targetID).Return(tc.input.AuthorID, tc.expectedErr)
 		}
 
-		author1, _ := mock.Put(tc.input, tc.targetID)
+		author1, _ := mock.Put(context.TODO(), tc.input, tc.targetID)
 
 		if author1 != tc.expected {
 			t.Errorf("failed for %v\n", tc.desc)
@@ -132,10 +133,10 @@ func TestDelete(t *testing.T) {
 
 	for _, tc := range testcases {
 		if tc.targetID == 4 {
-			mockStore.EXPECT().Delete(tc.targetID).Return(tc.expectedRowsAffected, tc.expectedErr)
+			mockStore.EXPECT().Delete(context.TODO(), tc.targetID).Return(tc.expectedRowsAffected, tc.expectedErr)
 		}
 
-		id, _ := mock.Delete(tc.targetID)
+		id, _ := mock.Delete(context.TODO(), tc.targetID)
 		if id != tc.expectedRowsAffected {
 			t.Errorf("failed for %v\n", tc.desc)
 		}

@@ -49,13 +49,14 @@ func TestGetAllBook(t *testing.T) {
 	for _, tc := range Testcases {
 		req := httptest.NewRequest("GET", "localhost:8000/book?"+"title="+tc.title+"&"+"includeAuthor="+tc.includeAuthor, nil)
 		w := httptest.NewRecorder()
+		ctx := req.Context()
 
 		if tc.title == "" {
-			mockService.EXPECT().GetAllBook(tc.title, tc.includeAuthor).Return(tc.expectedBooks, tc.expectedErr)
+			mockService.EXPECT().GetAllBook(ctx, tc.title, tc.includeAuthor).Return(tc.expectedBooks, tc.expectedErr)
 		}
 
 		if tc.title == "book+two" {
-			mockService.EXPECT().GetAllBook("book two", tc.includeAuthor).Return(tc.expectedBooks, tc.expectedErr)
+			mockService.EXPECT().GetAllBook(ctx, "book two", tc.includeAuthor).Return(tc.expectedBooks, tc.expectedErr)
 		}
 
 		mock.GetAllBook(w, req)
@@ -94,10 +95,11 @@ func TestGetBookByID(t *testing.T) {
 		req := httptest.NewRequest("GET", "localhost:8000/book/{id}"+tc.targetID, nil)
 		w := httptest.NewRecorder()
 		req = mux.SetURLVars(req, map[string]string{"id": tc.targetID})
+		ctx := req.Context()
 
 		id, _ := strconv.Atoi(tc.targetID)
 		if tc.targetID != "-1" {
-			mockService.EXPECT().GetBookByID(id).Return(tc.expected, tc.expectedErr)
+			mockService.EXPECT().GetBookByID(ctx, id).Return(tc.expected, tc.expectedErr)
 		}
 
 		mock.GetBookByID(w, req)
@@ -153,9 +155,10 @@ func TestPost(t *testing.T) {
 
 		req := httptest.NewRequest("POST", "localhost:8000/book", bytes.NewBuffer(data))
 		w := httptest.NewRecorder()
+		ctx := req.Context()
 
 		if tc.desc != c {
-			mockService.EXPECT().Post(&tc.body).Return(tc.expected, tc.expectedErr)
+			mockService.EXPECT().Post(ctx, &tc.body).Return(tc.expected, tc.expectedErr)
 		}
 
 		mock.Post(w, req)
@@ -213,10 +216,11 @@ func TestPut(t *testing.T) {
 		req := httptest.NewRequest("PUT", "localhost:8000/book/{id}"+tc.inputID, bytes.NewBuffer(data))
 		req = mux.SetURLVars(req, map[string]string{"id": tc.inputID})
 		w := httptest.NewRecorder()
+		ctx := req.Context()
 
 		id, _ := strconv.Atoi(tc.inputID)
 		if tc.desc != u {
-			mockService.EXPECT().Put(&tc.input, id).Return(tc.expected, tc.expectedErr)
+			mockService.EXPECT().Put(ctx, &tc.input, id).Return(tc.expected, tc.expectedErr)
 		}
 
 		mock.Put(w, req)
@@ -251,10 +255,11 @@ func TestDelete(t *testing.T) {
 		req := httptest.NewRequest("PUT", "localhost:8000/book/{id}"+tc.inputID, nil)
 		req = mux.SetURLVars(req, map[string]string{"id": tc.inputID})
 		w := httptest.NewRecorder()
+		ctx := req.Context()
 
 		id, _ := strconv.Atoi(tc.inputID)
 		if tc.desc != "invalid id" {
-			mockService.EXPECT().Delete(id).Return(1, tc.expectedErr)
+			mockService.EXPECT().Delete(ctx, id).Return(1, tc.expectedErr)
 		}
 
 		mock.Delete(w, req)

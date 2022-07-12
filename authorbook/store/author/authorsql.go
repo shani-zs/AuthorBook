@@ -1,6 +1,7 @@
 package author
 
 import (
+	"context"
 	"database/sql"
 	"log"
 	"projects/GoLang-Interns-2022/authorbook/entities"
@@ -16,7 +17,7 @@ func New(db *sql.DB) Store {
 }
 
 // Post : insert an author
-func (s Store) Post(author entities.Author) (int, error) {
+func (s Store) Post(ctx context.Context, author entities.Author) (int, error) {
 	res, err := s.DB.Exec("insert into author(first_name,last_name,dob,pen_name)values(?,?,?,?)",
 		author.FirstName, author.LastName, author.DOB, author.PenName)
 	if err != nil {
@@ -33,7 +34,7 @@ func (s Store) Post(author entities.Author) (int, error) {
 }
 
 // Put : inserts an author if that does not exist and update author if exists
-func (s Store) Put(author entities.Author, id int) (int, error) {
+func (s Store) Put(ctx context.Context, author entities.Author, id int) (int, error) {
 	_, err := s.DB.Exec("update author set author_id=?,first_name=?,last_name=?,dob=?,pen_name=? where author_id=?",
 		author.AuthorID, author.FirstName, author.LastName, author.DOB, author.PenName, id)
 	if err != nil {
@@ -45,7 +46,7 @@ func (s Store) Put(author entities.Author, id int) (int, error) {
 }
 
 // Delete :  deletes an author
-func (s Store) Delete(id int) (int, error) {
+func (s Store) Delete(ctx context.Context, id int) (int, error) {
 	res, err := s.DB.Exec("delete from author where author_id=?", id)
 	if err != nil {
 		return 0, err
@@ -60,7 +61,7 @@ func (s Store) Delete(id int) (int, error) {
 }
 
 // IncludeAuthor : checks whether an author exists or not if exists then it returns the author detail
-func (s Store) IncludeAuthor(id int) (entities.Author, error) {
+func (s Store) IncludeAuthor(ctx context.Context, id int) (entities.Author, error) {
 	var author entities.Author
 
 	Row := s.DB.QueryRow("SELECT * FROM author where author_id=?", id)

@@ -25,8 +25,9 @@ func New(bookS service.BookService) BookHandler {
 func (h BookHandler) GetAllBook(w http.ResponseWriter, req *http.Request) {
 	title := req.URL.Query().Get("title")
 	includeAuthor := req.URL.Query().Get("includeAuthor")
+	ctx := req.Context()
 
-	books, err := h.bookH.GetAllBook(title, includeAuthor)
+	books, err := h.bookH.GetAllBook(ctx, title, includeAuthor)
 	if err != nil {
 		log.Print(err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -58,7 +59,9 @@ func (h BookHandler) GetBookByID(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	book, err := h.bookH.GetBookByID(id)
+	ctx := req.Context()
+
+	book, err := h.bookH.GetBookByID(ctx, id)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		_, _ = w.Write([]byte("book does not exist"))
@@ -96,7 +99,8 @@ func (h BookHandler) Post(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	book1, err := h.bookH.Post(&book)
+	ctx := req.Context()
+	book1, err := h.bookH.Post(ctx, &book)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write([]byte("author does exist!"))
@@ -139,8 +143,9 @@ func (h BookHandler) Put(w http.ResponseWriter, req *http.Request) {
 
 	params := mux.Vars(req)
 	id, _ := strconv.Atoi(params["id"])
+	ctx := req.Context()
 
-	book, err = h.bookH.Put(&book, id)
+	book, err = h.bookH.Put(ctx, &book, id)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		log.Print(err)
@@ -169,8 +174,9 @@ func (h BookHandler) Delete(w http.ResponseWriter, req *http.Request) {
 
 		return
 	}
+	ctx := req.Context()
 
-	_, err = h.bookH.Delete(id)
+	_, err = h.bookH.Delete(ctx, id)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		log.Print(err)

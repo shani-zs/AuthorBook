@@ -1,6 +1,7 @@
 package book
 
 import (
+	"context"
 	"errors"
 	"log"
 	"projects/GoLang-Interns-2022/authorbook/entities"
@@ -46,7 +47,7 @@ func TestGetAllBook(t *testing.T) {
 
 		mock.ExpectQuery("SELECT * FROM book").WithArgs().WillReturnRows(books).WillReturnError(tc.expectedErr)
 
-		b, err := bs.GetAllBook()
+		b, err := bs.GetAllBook(context.TODO())
 		if err != nil {
 			log.Print(err)
 		}
@@ -106,7 +107,7 @@ func TestGetBooksByTitle(t *testing.T) {
 				WillReturnError(tc.expectedErr)
 		}
 
-		b, err := bs.GetBooksByTitle(tc.title)
+		b, err := bs.GetBooksByTitle(context.TODO(), tc.title)
 
 		if err != nil {
 			log.Print(err)
@@ -151,7 +152,7 @@ func TestGetBookByID(t *testing.T) {
 
 		mock.ExpectQuery("select * from book where id=?").WithArgs(tc.targetID).WillReturnRows(book1).WillReturnError(tc.expectedErr)
 
-		b, err := bs.GetBookByID(tc.targetID)
+		b, err := bs.GetBookByID(context.TODO(), tc.targetID)
 		if err != nil {
 			log.Print(err)
 		}
@@ -204,7 +205,7 @@ func TestPost(t *testing.T) {
 
 		bs := New(db)
 
-		_, err = bs.Post(&tc.input)
+		_, err = bs.Post(context.TODO(), &tc.input)
 		if err != tc.expectedErr {
 			t.Errorf("failed for %s", tc.desc)
 		}
@@ -254,7 +255,7 @@ func TestPut(t *testing.T) {
 
 		bs := New(db)
 
-		_, err = bs.Put(&tc.input, tc.targetID)
+		_, err = bs.Put(context.TODO(), &tc.input, tc.targetID)
 		if err != tc.expectedErr {
 			t.Errorf("failed for %s", tc.desc)
 		}
@@ -293,7 +294,7 @@ func TestDelete(t *testing.T) {
 				WillReturnResult(sqlmock.NewErrorResult(tc.expectedErr)).WillReturnError(nil)
 		}
 
-		_, err = bs.Delete(tc.target)
+		_, err = bs.Delete(context.TODO(), tc.target)
 		if err != tc.expectedErr {
 			t.Errorf("failed for %v\n", tc.desc)
 		}

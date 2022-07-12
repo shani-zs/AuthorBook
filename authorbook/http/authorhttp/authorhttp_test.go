@@ -56,11 +56,12 @@ func TestPost(t *testing.T) {
 
 		req := httptest.NewRequest("POST", "localhost:8000/author", bytes.NewReader(data))
 		w := httptest.NewRecorder()
+		ctx := req.Context()
 
 		if tc.input.AuthorID == 4 {
-			mockService.EXPECT().Post(tc.input).Return(tc.expected, tc.expectedErr)
+			mockService.EXPECT().Post(ctx, tc.input).Return(tc.expected, tc.expectedErr)
 		} else {
-			mockService.EXPECT().Post(tc.input).Return(tc.expected, tc.expectedErr).AnyTimes()
+			mockService.EXPECT().Post(ctx, tc.input).Return(tc.expected, tc.expectedErr).AnyTimes()
 		}
 
 		mock.Post(w, req)
@@ -117,7 +118,9 @@ func TestPut(t *testing.T) {
 		req = mux.SetURLVars(req, map[string]string{"id": tc.TargetID})
 		w := httptest.NewRecorder()
 		id, _ := strconv.Atoi(tc.TargetID)
-		mockService.EXPECT().Put(tc.input, id).Return(tc.expected, tc.expectedErr).AnyTimes()
+		ctx := req.Context()
+
+		mockService.EXPECT().Put(ctx, tc.input, id).Return(tc.expected, tc.expectedErr).AnyTimes()
 
 		mock.Put(w, req)
 
@@ -156,7 +159,8 @@ func TestDelete(t *testing.T) {
 			log.Print(err)
 		}
 
-		mockService.EXPECT().Delete(id).Return(tc.expectedStatus, tc.expectedErr).AnyTimes()
+		ctx := req.Context()
+		mockService.EXPECT().Delete(ctx, id).Return(tc.expectedStatus, tc.expectedErr).AnyTimes()
 
 		mock.Delete(w, req)
 

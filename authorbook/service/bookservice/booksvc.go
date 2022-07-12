@@ -1,6 +1,7 @@
 package bookservice
 
 import (
+	"context"
 	"errors"
 	"log"
 	"projects/GoLang-Interns-2022/authorbook/entities"
@@ -19,20 +20,20 @@ func New(bs store.BookStorer, as store.AuthorStorer) BookService {
 }
 
 // GetAllBook : implements the logic of getting all book
-func (b BookService) GetAllBook(title, includeAuthor string) ([]entities.Book, error) {
+func (b BookService) GetAllBook(ctx context.Context, title, includeAuthor string) ([]entities.Book, error) {
 	var (
 		books []entities.Book
 		err   error
 	)
 
 	if title != "" {
-		books, err = b.bookService.GetBooksByTitle(title)
+		books, err = b.bookService.GetBooksByTitle(ctx, title)
 		if err != nil {
 			log.Print(err)
 			return []entities.Book{}, err
 		}
 	} else {
-		books, err = b.bookService.GetAllBook()
+		books, err = b.bookService.GetAllBook(ctx)
 		if err != nil {
 			log.Print(err)
 			return []entities.Book{}, err
@@ -41,7 +42,7 @@ func (b BookService) GetAllBook(title, includeAuthor string) ([]entities.Book, e
 
 	if includeAuthor == "true" {
 		for i := range books {
-			author, err := b.authorService.IncludeAuthor(books[i].AuthorID)
+			author, err := b.authorService.IncludeAuthor(ctx, books[i].AuthorID)
 			if err != nil {
 				log.Print(err)
 				return []entities.Book{}, err
@@ -55,12 +56,12 @@ func (b BookService) GetAllBook(title, includeAuthor string) ([]entities.Book, e
 }
 
 // GetBookByID : implements the logic of getting a single by
-func (b BookService) GetBookByID(id int) (entities.Book, error) {
+func (b BookService) GetBookByID(ctx context.Context, id int) (entities.Book, error) {
 	if id <= 0 {
 		return entities.Book{}, errors.New("invalid id")
 	}
 
-	book, err := b.bookService.GetBookByID(id)
+	book, err := b.bookService.GetBookByID(ctx, id)
 	if err != nil {
 		log.Print(err)
 		return entities.Book{}, err
@@ -70,17 +71,17 @@ func (b BookService) GetBookByID(id int) (entities.Book, error) {
 }
 
 // Post : checks the book before posting
-func (b BookService) Post(book *entities.Book) (entities.Book, error) {
+func (b BookService) Post(ctx context.Context, book *entities.Book) (entities.Book, error) {
 	if book.Title == "" || book.AuthorID < 0 || checkPublication(book.Publication) {
 		return entities.Book{}, errors.New("invalid constraints")
 	}
 
-	existAuthor, err := b.authorService.IncludeAuthor(book.AuthorID)
+	existAuthor, err := b.authorService.IncludeAuthor(ctx, book.AuthorID)
 	if err != nil {
 		return entities.Book{}, err
 	}
 
-	id, err := b.bookService.Post(book)
+	id, err := b.bookService.Post(ctx, book)
 	if err != nil || id == -1 {
 		return entities.Book{}, errors.New("database issue")
 	}
@@ -92,12 +93,12 @@ func (b BookService) Post(book *entities.Book) (entities.Book, error) {
 }
 
 // Put :  checks the book before updating
-func (b BookService) Put(book *entities.Book, id int) (entities.Book, error) {
+func (b BookService) Put(ctx context.Context, book *entities.Book, id int) (entities.Book, error) {
 	if book.Title == "" || book.AuthorID <= 0 || checkPublication(book.Publication) {
 		return entities.Book{}, errors.New("invalid constraints")
 	}
 
-	count, err := b.bookService.Put(book, id)
+	count, err := b.bookService.Put(ctx, book, id)
 	if err != nil || count <= 0 {
 		return entities.Book{}, errors.New("does not exist")
 	}
@@ -106,12 +107,12 @@ func (b BookService) Put(book *entities.Book, id int) (entities.Book, error) {
 }
 
 // Delete : checks before deleting a book
-func (b BookService) Delete(id int) (int, error) {
+func (b BookService) Delete(ctx context.Context, id int) (int, error) {
 	if id < 0 {
 		return -1, nil
 	}
 
-	count, err := b.bookService.Delete(id)
+	count, err := b.bookService.Delete(ctx, id)
 	if err != nil || count <= 0 {
 		return -1, errors.New("does not exist")
 	}

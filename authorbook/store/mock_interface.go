@@ -5,203 +5,205 @@
 package store
 
 import (
-	gomock "github.com/golang/mock/gomock"
+	context "context"
 	entities "projects/GoLang-Interns-2022/authorbook/entities"
 	reflect "reflect"
+
+	gomock "github.com/golang/mock/gomock"
 )
 
-// MockAuthorStorer is a mock of AuthorStorer interface
+// MockAuthorStorer is a mock of AuthorStorer interface.
 type MockAuthorStorer struct {
 	ctrl     *gomock.Controller
 	recorder *MockAuthorStorerMockRecorder
 }
 
-// MockAuthorStorerMockRecorder is the mock recorder for MockAuthorStorer
+// MockAuthorStorerMockRecorder is the mock recorder for MockAuthorStorer.
 type MockAuthorStorerMockRecorder struct {
 	mock *MockAuthorStorer
 }
 
-// NewMockAuthorStorer creates a new mock instance
+// NewMockAuthorStorer creates a new mock instance.
 func NewMockAuthorStorer(ctrl *gomock.Controller) *MockAuthorStorer {
 	mock := &MockAuthorStorer{ctrl: ctrl}
 	mock.recorder = &MockAuthorStorerMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockAuthorStorer) EXPECT() *MockAuthorStorerMockRecorder {
 	return m.recorder
 }
 
-// Post mocks base method
-func (m *MockAuthorStorer) Post(author entities.Author) (int, error) {
+// Delete mocks base method.
+func (m *MockAuthorStorer) Delete(ctx context.Context, id int) (int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Post", author)
+	ret := m.ctrl.Call(m, "Delete", ctx, id)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Post indicates an expected call of Post
-func (mr *MockAuthorStorerMockRecorder) Post(author interface{}) *gomock.Call {
+// Delete indicates an expected call of Delete.
+func (mr *MockAuthorStorerMockRecorder) Delete(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Post", reflect.TypeOf((*MockAuthorStorer)(nil).Post), author)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockAuthorStorer)(nil).Delete), ctx, id)
 }
 
-// Put mocks base method
-func (m *MockAuthorStorer) Put(author entities.Author, id int) (int, error) {
+// IncludeAuthor mocks base method.
+func (m *MockAuthorStorer) IncludeAuthor(ctx context.Context, id int) (entities.Author, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Put", author, id)
-	ret0, _ := ret[0].(int)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Put indicates an expected call of Put
-func (mr *MockAuthorStorerMockRecorder) Put(author, id interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockAuthorStorer)(nil).Put), author, id)
-}
-
-// Delete mocks base method
-func (m *MockAuthorStorer) Delete(id int) (int, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", id)
-	ret0, _ := ret[0].(int)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Delete indicates an expected call of Delete
-func (mr *MockAuthorStorerMockRecorder) Delete(id interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockAuthorStorer)(nil).Delete), id)
-}
-
-// IncludeAuthor mocks base method
-func (m *MockAuthorStorer) IncludeAuthor(id int) (entities.Author, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IncludeAuthor", id)
+	ret := m.ctrl.Call(m, "IncludeAuthor", ctx, id)
 	ret0, _ := ret[0].(entities.Author)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// IncludeAuthor indicates an expected call of IncludeAuthor
-func (mr *MockAuthorStorerMockRecorder) IncludeAuthor(id interface{}) *gomock.Call {
+// IncludeAuthor indicates an expected call of IncludeAuthor.
+func (mr *MockAuthorStorerMockRecorder) IncludeAuthor(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IncludeAuthor", reflect.TypeOf((*MockAuthorStorer)(nil).IncludeAuthor), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IncludeAuthor", reflect.TypeOf((*MockAuthorStorer)(nil).IncludeAuthor), ctx, id)
 }
 
-// MockBookStorer is a mock of BookStorer interface
+// Post mocks base method.
+func (m *MockAuthorStorer) Post(ctx context.Context, author entities.Author) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Post", ctx, author)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Post indicates an expected call of Post.
+func (mr *MockAuthorStorerMockRecorder) Post(ctx, author interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Post", reflect.TypeOf((*MockAuthorStorer)(nil).Post), ctx, author)
+}
+
+// Put mocks base method.
+func (m *MockAuthorStorer) Put(ctx context.Context, author entities.Author, id int) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Put", ctx, author, id)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Put indicates an expected call of Put.
+func (mr *MockAuthorStorerMockRecorder) Put(ctx, author, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockAuthorStorer)(nil).Put), ctx, author, id)
+}
+
+// MockBookStorer is a mock of BookStorer interface.
 type MockBookStorer struct {
 	ctrl     *gomock.Controller
 	recorder *MockBookStorerMockRecorder
 }
 
-// MockBookStorerMockRecorder is the mock recorder for MockBookStorer
+// MockBookStorerMockRecorder is the mock recorder for MockBookStorer.
 type MockBookStorerMockRecorder struct {
 	mock *MockBookStorer
 }
 
-// NewMockBookStorer creates a new mock instance
+// NewMockBookStorer creates a new mock instance.
 func NewMockBookStorer(ctrl *gomock.Controller) *MockBookStorer {
 	mock := &MockBookStorer{ctrl: ctrl}
 	mock.recorder = &MockBookStorerMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockBookStorer) EXPECT() *MockBookStorerMockRecorder {
 	return m.recorder
 }
 
-// GetAllBook mocks base method
-func (m *MockBookStorer) GetAllBook() ([]entities.Book, error) {
+// Delete mocks base method.
+func (m *MockBookStorer) Delete(ctx context.Context, id int) (int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAllBook")
+	ret := m.ctrl.Call(m, "Delete", ctx, id)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockBookStorerMockRecorder) Delete(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockBookStorer)(nil).Delete), ctx, id)
+}
+
+// GetAllBook mocks base method.
+func (m *MockBookStorer) GetAllBook(ctx context.Context) ([]entities.Book, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllBook", ctx)
 	ret0, _ := ret[0].([]entities.Book)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetAllBook indicates an expected call of GetAllBook
-func (mr *MockBookStorerMockRecorder) GetAllBook() *gomock.Call {
+// GetAllBook indicates an expected call of GetAllBook.
+func (mr *MockBookStorerMockRecorder) GetAllBook(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllBook", reflect.TypeOf((*MockBookStorer)(nil).GetAllBook))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllBook", reflect.TypeOf((*MockBookStorer)(nil).GetAllBook), ctx)
 }
 
-// GetBooksByTitle mocks base method
-func (m *MockBookStorer) GetBooksByTitle(title string) ([]entities.Book, error) {
+// GetBookByID mocks base method.
+func (m *MockBookStorer) GetBookByID(ctx context.Context, id int) (entities.Book, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetBooksByTitle", title)
-	ret0, _ := ret[0].([]entities.Book)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetBooksByTitle indicates an expected call of GetBooksByTitle
-func (mr *MockBookStorerMockRecorder) GetBooksByTitle(title interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBooksByTitle", reflect.TypeOf((*MockBookStorer)(nil).GetBooksByTitle), title)
-}
-
-// GetBookByID mocks base method
-func (m *MockBookStorer) GetBookByID(id int) (entities.Book, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetBookByID", id)
+	ret := m.ctrl.Call(m, "GetBookByID", ctx, id)
 	ret0, _ := ret[0].(entities.Book)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetBookByID indicates an expected call of GetBookByID
-func (mr *MockBookStorerMockRecorder) GetBookByID(id interface{}) *gomock.Call {
+// GetBookByID indicates an expected call of GetBookByID.
+func (mr *MockBookStorerMockRecorder) GetBookByID(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBookByID", reflect.TypeOf((*MockBookStorer)(nil).GetBookByID), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBookByID", reflect.TypeOf((*MockBookStorer)(nil).GetBookByID), ctx, id)
 }
 
-// Post mocks base method
-func (m *MockBookStorer) Post(book *entities.Book) (int, error) {
+// GetBooksByTitle mocks base method.
+func (m *MockBookStorer) GetBooksByTitle(ctx context.Context, title string) ([]entities.Book, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Post", book)
+	ret := m.ctrl.Call(m, "GetBooksByTitle", ctx, title)
+	ret0, _ := ret[0].([]entities.Book)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetBooksByTitle indicates an expected call of GetBooksByTitle.
+func (mr *MockBookStorerMockRecorder) GetBooksByTitle(ctx, title interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBooksByTitle", reflect.TypeOf((*MockBookStorer)(nil).GetBooksByTitle), ctx, title)
+}
+
+// Post mocks base method.
+func (m *MockBookStorer) Post(ctx context.Context, book *entities.Book) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Post", ctx, book)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Post indicates an expected call of Post
-func (mr *MockBookStorerMockRecorder) Post(book interface{}) *gomock.Call {
+// Post indicates an expected call of Post.
+func (mr *MockBookStorerMockRecorder) Post(ctx, book interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Post", reflect.TypeOf((*MockBookStorer)(nil).Post), book)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Post", reflect.TypeOf((*MockBookStorer)(nil).Post), ctx, book)
 }
 
-// Put mocks base method
-func (m *MockBookStorer) Put(book *entities.Book, id int) (int, error) {
+// Put mocks base method.
+func (m *MockBookStorer) Put(ctx context.Context, book *entities.Book, id int) (int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Put", book, id)
+	ret := m.ctrl.Call(m, "Put", ctx, book, id)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Put indicates an expected call of Put
-func (mr *MockBookStorerMockRecorder) Put(book, id interface{}) *gomock.Call {
+// Put indicates an expected call of Put.
+func (mr *MockBookStorerMockRecorder) Put(ctx, book, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockBookStorer)(nil).Put), book, id)
-}
-
-// Delete mocks base method
-func (m *MockBookStorer) Delete(id int) (int, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", id)
-	ret0, _ := ret[0].(int)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Delete indicates an expected call of Delete
-func (mr *MockBookStorerMockRecorder) Delete(id interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockBookStorer)(nil).Delete), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockBookStorer)(nil).Put), ctx, book, id)
 }
