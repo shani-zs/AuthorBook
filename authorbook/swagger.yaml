@@ -1,6 +1,6 @@
 swagger: '2.0'
 info:
-  description: .
+  description: 'Author book store manages the details of author and book'
   version: '1.0'
   title: Author Book Store
   contact:
@@ -27,7 +27,7 @@ paths:
       parameters:
         - name: title
           in: query
-          description: Return Book details with title
+          description: Returns Book details with particular title
           required: false
           type: string
           format: string
@@ -150,7 +150,7 @@ paths:
           schema:
             $ref: '#/definitions/Book'
         '404':
-          description: No entry updated
+          description: Not found
         '400':
           description: Bad Request
         '500':
@@ -174,7 +174,7 @@ paths:
         '204':
           description: No content successful
         '404':
-          description: No entry deleted
+          description: Not found entry
         '400':
           description: Bad Request
         '500':
@@ -201,7 +201,7 @@ paths:
           schema:
             $ref: '#/definitions/Book'
         '404':
-          description: No entry updated
+          description: Not found entry
         '400':
           description: Bad Request
         '500':
@@ -224,7 +224,7 @@ paths:
         '204':
           description: No content successful
         '404':
-          description: No entry deleted
+          description: Not found entry
         '500':
           description: Internal Server Error
           
@@ -250,7 +250,7 @@ definitions:
           - Penguin
       publishedDate:
         type: string
-        description: Date of Pulication
+        description: Date of Publication
         format: DD/MM/YYYY
       Author:
         $ref: '#/definitions/Author'

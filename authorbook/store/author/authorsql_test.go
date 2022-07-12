@@ -1,6 +1,7 @@
 package author
 
 import (
+	"context"
 	"errors"
 	"log"
 	"projects/GoLang-Interns-2022/authorbook/entities"
@@ -49,7 +50,7 @@ func TestPost(t *testing.T) {
 		}
 
 		s := New(db)
-		_, err = s.Post(tc.body)
+		_, err = s.Post(context.TODO(), tc.body)
 
 		if err != tc.expectedErr {
 			t.Errorf("failed for %s", tc.desc)
@@ -88,7 +89,7 @@ func TestPut(t *testing.T) {
 			WithArgs(tc.body.AuthorID, tc.body.FirstName, tc.body.LastName, tc.body.DOB, tc.body.PenName, tc.id).
 			WillReturnResult(sqlmock.NewResult(tc.LastInserted, tc.RowAffected)).WillReturnError(tc.expectedErr)
 
-		_, err = s.Put(tc.body, tc.id)
+		_, err = s.Put(context.TODO(), tc.body, tc.id)
 
 		if err != tc.expectedErr {
 			t.Errorf("failed for %v\n, expected: %v, got: %v", tc.desc, tc.expectedErr, err)
@@ -130,7 +131,7 @@ func TestDelete(t *testing.T) {
 				WillReturnResult(sqlmock.NewResult(tc.lastInsertedID, tc.rowsAffected)).WillReturnError(tc.expectedErr)
 		}
 
-		_, err = as.Delete(tc.target)
+		_, err = as.Delete(context.TODO(), tc.target)
 
 		if err != tc.expectedErr {
 			t.Errorf("failed for %v\n", tc.desc)
@@ -171,7 +172,7 @@ func TestIncludeAuthor(t *testing.T) {
 
 		mock.ExpectQuery("SELECT * FROM author where author_id=?").WithArgs(tc.targetID).WillReturnRows(author1).WillReturnError(tc.expectedErr)
 
-		a, err := bs.IncludeAuthor(tc.targetID)
+		a, err := bs.IncludeAuthor(context.TODO(), tc.targetID)
 		if err != nil {
 			log.Print(err)
 		}

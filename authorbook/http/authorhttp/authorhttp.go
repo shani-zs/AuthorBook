@@ -36,6 +36,7 @@ func (h AuthorHandler) Post(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+
 	ctx := req.Context()
 
 	a, err := h.authorService.Post(ctx, author)
@@ -79,12 +80,13 @@ func (h AuthorHandler) Put(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+
 	ctx := req.Context()
 
 	author1, err := h.authorService.Put(ctx, author, id)
 	if err != nil {
 		log.Print("2")
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusNotFound)
 		_, _ = w.Write([]byte("dose not exist"))
 
 		return
@@ -109,6 +111,7 @@ func (h AuthorHandler) Delete(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+
 	ctx := req.Context()
 
 	_, err = h.authorService.Delete(ctx, id)

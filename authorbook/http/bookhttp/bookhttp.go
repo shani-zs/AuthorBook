@@ -100,6 +100,7 @@ func (h BookHandler) Post(w http.ResponseWriter, req *http.Request) {
 	}
 
 	ctx := req.Context()
+
 	book1, err := h.bookH.Post(ctx, &book)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -174,6 +175,7 @@ func (h BookHandler) Delete(w http.ResponseWriter, req *http.Request) {
 
 		return
 	}
+
 	ctx := req.Context()
 
 	_, err = h.bookH.Delete(ctx, id)
