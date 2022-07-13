@@ -69,6 +69,9 @@ func (b BookService) GetBookByID(ctx context.Context, id int) (entities.Book, er
 		return entities.Book{}, err
 	}
 
+	author, err := b.authorService.IncludeAuthor(ctx, book.AuthorID)
+	book.Author = author
+
 	return book, nil
 }
 
@@ -125,7 +128,7 @@ func (b BookService) Delete(ctx context.Context, id int) (int, error) {
 
 // checkPublication : validates publication
 func checkPublication(publication string) bool {
-	_ = strings.ToLower(publication)
+	publication = strings.ToLower(publication)
 
 	return !(publication == "penguin" || publication == "scholastic" || publication == "arihant")
 }

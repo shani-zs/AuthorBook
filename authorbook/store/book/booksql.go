@@ -21,20 +21,20 @@ func New(db *sql.DB) Store {
 func (bs Store) GetAllBook(ctx context.Context) ([]entities.Book, error) {
 	var (
 		books []entities.Book
-		Rows  *sql.Rows
+		rows  *sql.Rows
 		err   error
 	)
 
-	Rows, err = bs.DB.QueryContext(ctx, "SELECT * FROM book")
+	rows, err = bs.DB.QueryContext(ctx, "SELECT * FROM book")
 	if err != nil {
 		return []entities.Book{}, err
 	}
-	defer Rows.Close()
+	defer rows.Close()
 
-	for Rows.Next() {
+	for rows.Next() {
 		var book entities.Book
 
-		err = Rows.Scan(&book.BookID, &book.AuthorID, &book.Title, &book.Publication, &book.PublishedDate)
+		err = rows.Scan(&book.BookID, &book.AuthorID, &book.Title, &book.Publication, &book.PublishedDate)
 		if err != nil {
 			return []entities.Book{}, err
 		}
