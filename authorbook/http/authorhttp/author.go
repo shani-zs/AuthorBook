@@ -5,9 +5,10 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strconv"
+
 	"projects/GoLang-Interns-2022/authorbook/entities"
 	"projects/GoLang-Interns-2022/authorbook/service"
-	"strconv"
 
 	"github.com/gorilla/mux"
 )
@@ -42,6 +43,8 @@ func (h AuthorHandler) Post(w http.ResponseWriter, req *http.Request) {
 	a, err := h.authorService.Post(ctx, author)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte(err.Error()))
+
 		return
 	}
 
@@ -85,9 +88,8 @@ func (h AuthorHandler) Put(w http.ResponseWriter, req *http.Request) {
 
 	author1, err := h.authorService.Put(ctx, author, id)
 	if err != nil {
-		log.Print("2")
 		w.WriteHeader(http.StatusNotFound)
-		_, _ = w.Write([]byte("dose not exist"))
+		_, _ = w.Write([]byte(err.Error()))
 
 		return
 	}
@@ -117,7 +119,7 @@ func (h AuthorHandler) Delete(w http.ResponseWriter, req *http.Request) {
 	_, err = h.authorService.Delete(ctx, id)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		_, _ = w.Write([]byte("could not delete"))
+		_, _ = w.Write([]byte(err.Error()))
 
 		return
 	}

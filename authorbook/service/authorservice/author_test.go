@@ -3,9 +3,10 @@ package authorservice
 import (
 	"context"
 	"errors"
+	"testing"
+
 	"projects/GoLang-Interns-2022/authorbook/entities"
 	"projects/GoLang-Interns-2022/authorbook/store"
-	"testing"
 
 	"github.com/golang/mock/gomock"
 )

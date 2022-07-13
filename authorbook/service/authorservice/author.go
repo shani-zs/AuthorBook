@@ -3,17 +3,18 @@ package authorservice
 import (
 	"context"
 	"errors"
-	"projects/GoLang-Interns-2022/authorbook/entities"
-	"projects/GoLang-Interns-2022/authorbook/store"
 	"strconv"
 	"strings"
+
+	"projects/GoLang-Interns-2022/authorbook/entities"
+	"projects/GoLang-Interns-2022/authorbook/store"
 )
 
 type AuthorService struct {
 	datastore store.AuthorStorer
 }
 
-// New : factory function
+// New : factory function , use for dependency injection
 func New(s store.AuthorStorer) AuthorService {
 	return AuthorService{s}
 }
@@ -37,12 +38,12 @@ func (s AuthorService) Post(ctx context.Context, a entities.Author) (entities.Au
 // Put : checks the author before updating
 func (s AuthorService) Put(ctx context.Context, a entities.Author, id int) (entities.Author, error) {
 	if a.FirstName == "" || !checkDob(a.DOB) {
-		return entities.Author{}, nil
+		return entities.Author{}, errors.New("invalid constraints")
 	}
 
 	existAuthor, err := s.datastore.IncludeAuthor(ctx, id)
 	if err != nil || existAuthor.AuthorID != id {
-		return entities.Author{}, errors.New("dose not exist")
+		return entities.Author{}, errors.New("author does not exist")
 	}
 
 	i, err := s.datastore.Put(ctx, a, id)

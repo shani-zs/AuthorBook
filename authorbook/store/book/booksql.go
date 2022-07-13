@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"log"
+
 	"projects/GoLang-Interns-2022/authorbook/entities"
 )
 
@@ -24,7 +25,7 @@ func (bs Store) GetAllBook(ctx context.Context) ([]entities.Book, error) {
 		err   error
 	)
 
-	Rows, err = bs.DB.Query("SELECT * FROM book")
+	Rows, err = bs.DB.QueryContext(ctx, "SELECT * FROM book")
 	if err != nil {
 		return []entities.Book{}, err
 	}
@@ -52,7 +53,7 @@ func (bs Store) GetBooksByTitle(ctx context.Context, title string) ([]entities.B
 		err   error
 	)
 
-	Rows, err = bs.DB.Query("SELECT * FROM book WHERE title=?", title)
+	Rows, err = bs.DB.QueryContext(ctx, "SELECT * FROM book WHERE title=?", title)
 	if err != nil {
 		log.Print(err)
 		return []entities.Book{}, err
@@ -77,7 +78,7 @@ func (bs Store) GetBooksByTitle(ctx context.Context, title string) ([]entities.B
 func (bs Store) GetBookByID(ctx context.Context, id int) (entities.Book, error) {
 	var book entities.Book
 
-	row := bs.DB.QueryRow("select * from book where id=?", id)
+	row := bs.DB.QueryRowContext(ctx, "select * from book where id=?", id)
 
 	err := row.Scan(&book.BookID, &book.AuthorID, &book.Title, &book.Publication, &book.PublishedDate)
 	if err != nil {
@@ -90,7 +91,7 @@ func (bs Store) GetBookByID(ctx context.Context, id int) (entities.Book, error) 
 
 // Post : inserts the book into database
 func (bs Store) Post(ctx context.Context, book *entities.Book) (int, error) {
-	result, err := bs.DB.Exec("insert into book(author_id,title,publication,published_date)values(?,?,?,?)",
+	result, err := bs.DB.ExecContext(ctx, "insert into book(author_id,title,publication,published_date)values(?,?,?,?)",
 		book.AuthorID, book.Title, book.Publication, book.PublishedDate)
 	if err != nil {
 		log.Print(err)
@@ -108,8 +109,8 @@ func (bs Store) Post(ctx context.Context, book *entities.Book) (int, error) {
 
 // Put : updates the book with particular id
 func (bs Store) Put(ctx context.Context, book *entities.Book, id int) (int, error) {
-	res, err := bs.DB.Exec("update book set id=?,author_id=?,title=?,publication=?,published_date=? where id=?",
-		book.BookID, book.AuthorID, book.Title, book.Publication, book.PublishedDate, id)
+	res, err := bs.DB.ExecContext(ctx, "update book set author_id=?,title=?,publication=?,published_date=? where id=?",
+		book.AuthorID, book.Title, book.Publication, book.PublishedDate, id)
 	if err != nil {
 		return 0, err
 	}
@@ -124,7 +125,7 @@ func (bs Store) Put(ctx context.Context, book *entities.Book, id int) (int, erro
 
 // Delete : deletes the book by particular id
 func (bs Store) Delete(ctx context.Context, id int) (int, error) {
-	result, err := bs.DB.Exec("delete from book where id=?", id)
+	result, err := bs.DB.ExecContext(ctx, "delete from book where id=?", id)
 	if err != nil {
 		return -1, err
 	}

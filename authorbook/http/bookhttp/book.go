@@ -5,11 +5,12 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"projects/GoLang-Interns-2022/authorbook/entities"
-	"projects/GoLang-Interns-2022/authorbook/service"
 	"strconv"
 
 	"github.com/gorilla/mux"
+
+	"projects/GoLang-Interns-2022/authorbook/entities"
+	"projects/GoLang-Interns-2022/authorbook/service"
 )
 
 type BookHandler struct {
@@ -29,8 +30,8 @@ func (h BookHandler) GetAllBook(w http.ResponseWriter, req *http.Request) {
 
 	books, err := h.bookH.GetAllBook(ctx, title, includeAuthor)
 	if err != nil {
-		log.Print(err)
 		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte(err.Error()))
 
 		return
 	}
@@ -64,7 +65,7 @@ func (h BookHandler) GetBookByID(w http.ResponseWriter, req *http.Request) {
 	book, err := h.bookH.GetBookByID(ctx, id)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		_, _ = w.Write([]byte("book does not exist"))
+		_, _ = w.Write([]byte(err.Error()))
 
 		return
 	}
@@ -104,7 +105,7 @@ func (h BookHandler) Post(w http.ResponseWriter, req *http.Request) {
 	book1, err := h.bookH.Post(ctx, &book)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		_, _ = w.Write([]byte("author does exist!"))
+		_, _ = w.Write([]byte(err.Error()))
 
 		return
 	}
@@ -149,7 +150,7 @@ func (h BookHandler) Put(w http.ResponseWriter, req *http.Request) {
 	book, err = h.bookH.Put(ctx, &book, id)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		log.Print(err)
+		_, _ = w.Write([]byte(err.Error()))
 
 		return
 	}
@@ -181,7 +182,7 @@ func (h BookHandler) Delete(w http.ResponseWriter, req *http.Request) {
 	_, err = h.bookH.Delete(ctx, id)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		log.Print(err)
+		_, _ = w.Write([]byte(err.Error()))
 
 		return
 	}

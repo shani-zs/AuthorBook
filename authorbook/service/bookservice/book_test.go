@@ -3,10 +3,11 @@ package bookservice
 import (
 	"context"
 	"errors"
-	"projects/GoLang-Interns-2022/authorbook/entities"
-	"projects/GoLang-Interns-2022/authorbook/store"
 	"reflect"
 	"testing"
+
+	"projects/GoLang-Interns-2022/authorbook/entities"
+	"projects/GoLang-Interns-2022/authorbook/store"
 
 	"github.com/golang/mock/gomock"
 )

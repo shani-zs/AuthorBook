@@ -4,9 +4,11 @@ import (
 	"context"
 	"errors"
 	"log"
+	"strconv"
+	"strings"
+
 	"projects/GoLang-Interns-2022/authorbook/entities"
 	"projects/GoLang-Interns-2022/authorbook/store"
-	"strings"
 )
 
 type BookService struct {
@@ -94,7 +96,8 @@ func (b BookService) Post(ctx context.Context, book *entities.Book) (entities.Bo
 
 // Put :  checks the book before updating
 func (b BookService) Put(ctx context.Context, book *entities.Book, id int) (entities.Book, error) {
-	if book.Title == "" || book.AuthorID <= 0 || checkPublication(book.Publication) {
+	if book.Title == "" || book.AuthorID <= 0 || checkPublication(book.Publication) ||
+		!checkPublishedDate(book.PublishedDate) {
 		return entities.Book{}, errors.New("invalid constraints")
 	}
 
@@ -125,4 +128,23 @@ func checkPublication(publication string) bool {
 	_ = strings.ToLower(publication)
 
 	return !(publication == "penguin" || publication == "scholastic" || publication == "arihant")
+}
+
+// checkPublishedDate : validates the published date
+func checkPublishedDate(publishedDate string) bool {
+	Dob := strings.Split(publishedDate, "/")
+	day, _ := strconv.Atoi(Dob[0])
+	month, _ := strconv.Atoi(Dob[1])
+	year, _ := strconv.Atoi(Dob[2])
+
+	switch {
+	case day <= 0 || day > 31:
+		return false
+	case month <= 0 || month > 12:
+		return false
+	case year <= 1870 || year > 2022:
+		return false
+	}
+
+	return true
 }
