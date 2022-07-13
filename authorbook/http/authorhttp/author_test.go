@@ -101,7 +101,7 @@ func TestPut(t *testing.T) {
 			expectedStatus: http.StatusBadRequest, expectedErr: nil,
 		},
 		{desc: "error from svc layer", input: entities.Author{}, TargetID: "5", expected: entities.Author{},
-			expectedStatus: http.StatusInternalServerError, expectedErr: errors.New("invalid error"),
+			expectedStatus: http.StatusNotFound, expectedErr: errors.New("invalid error"),
 		},
 	}
 	for _, tc := range testcases {
@@ -150,7 +150,7 @@ func TestDelete(t *testing.T) {
 	}
 
 	for _, tc := range testcases {
-		req := httptest.NewRequest("DELETE", "localhost:8000/authorhttp/{id}"+tc.target, nil)
+		req := httptest.NewRequest("DELETE", "localhost:8000/author/{id}"+tc.target, nil)
 		req = mux.SetURLVars(req, map[string]string{"id": tc.target})
 		w := httptest.NewRecorder()
 
