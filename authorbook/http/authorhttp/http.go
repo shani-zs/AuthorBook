@@ -42,7 +42,7 @@ func (h AuthorHandler) Post(w http.ResponseWriter, req *http.Request) {
 
 	a, err := h.authorService.Post(ctx, author)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusNotFound)
 		_, _ = w.Write([]byte(err.Error()))
 
 		return
@@ -54,6 +54,7 @@ func (h AuthorHandler) Post(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	w.Header().Set("content-type", "json/application")
 	w.WriteHeader(http.StatusCreated)
 	_, _ = w.Write(au)
 }
@@ -81,6 +82,7 @@ func (h AuthorHandler) Put(w http.ResponseWriter, req *http.Request) {
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte(err.Error()))
 		return
 	}
 
@@ -100,6 +102,7 @@ func (h AuthorHandler) Put(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	w.Header().Set("content-type", "json/application")
 	w.WriteHeader(http.StatusCreated)
 	_, _ = w.Write(data)
 }
@@ -111,14 +114,16 @@ func (h AuthorHandler) Delete(w http.ResponseWriter, req *http.Request) {
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte(err.Error()))
+
 		return
 	}
 
 	ctx := req.Context()
 
-	_, err = h.authorService.Delete(ctx, id)
+	err = h.authorService.Delete(ctx, id)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusNotFound)
 		_, _ = w.Write([]byte(err.Error()))
 
 		return

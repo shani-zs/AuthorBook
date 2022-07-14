@@ -8,7 +8,7 @@ import (
 type AuthorService interface {
 	Post(ctx context.Context, author entities.Author) (entities.Author, error)
 	Put(ctx context.Context, author entities.Author, id int) (entities.Author, error)
-	Delete(ctx context.Context, id int) (int, error)
+	Delete(ctx context.Context, id int) error
 }
 
 type BookService interface {
@@ -16,5 +16,5 @@ type BookService interface {
 	GetBookByID(ctx context.Context, id int) (entities.Book, error)
 	Post(ctx context.Context, book *entities.Book) (entities.Book, error)
 	Put(ctx context.Context, book *entities.Book, id int) (entities.Book, error)
-	Delete(ctx context.Context, id int) (int, error)
+	Delete(ctx context.Context, id int) error
 }

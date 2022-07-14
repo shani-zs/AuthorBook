@@ -27,7 +27,7 @@ func (bs Store) GetAllBook(ctx context.Context) ([]entities.Book, error) {
 
 	rows, err = bs.DB.QueryContext(ctx, "SELECT * FROM book")
 	if err != nil {
-		return []entities.Book{}, err
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -36,7 +36,7 @@ func (bs Store) GetAllBook(ctx context.Context) ([]entities.Book, error) {
 
 		err = rows.Scan(&book.BookID, &book.AuthorID, &book.Title, &book.Publication, &book.PublishedDate)
 		if err != nil {
-			return []entities.Book{}, err
+			return nil, err
 		}
 
 		books = append(books, book)
@@ -56,7 +56,7 @@ func (bs Store) GetBooksByTitle(ctx context.Context, title string) ([]entities.B
 	Rows, err = bs.DB.QueryContext(ctx, "SELECT * FROM book WHERE title=?", title)
 	if err != nil {
 		log.Print(err)
-		return []entities.Book{}, err
+		return nil, err
 	}
 	defer Rows.Close()
 
@@ -65,7 +65,7 @@ func (bs Store) GetBooksByTitle(ctx context.Context, title string) ([]entities.B
 
 		err = Rows.Scan(&book.BookID, &book.AuthorID, &book.Title, &book.Publication, &book.PublishedDate)
 		if err != nil {
-			return []entities.Book{}, err
+			return nil, err
 		}
 
 		books = append(books, book)
@@ -125,15 +125,15 @@ func (bs Store) Put(ctx context.Context, book *entities.Book, id int) (int, erro
 
 // Delete : deletes the book by particular id
 func (bs Store) Delete(ctx context.Context, id int) (int, error) {
-	result, err := bs.DB.ExecContext(ctx, "delete from book where id=?", id)
+	res, err := bs.DB.ExecContext(ctx, "delete from book where id=?", id)
 	if err != nil {
 		return -1, err
 	}
 
-	count, err := result.RowsAffected()
+	ra, err := res.RowsAffected()
 	if err != nil {
 		return -1, err
 	}
 
-	return int(count), nil
+	return int(ra), nil
 }

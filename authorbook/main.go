@@ -1,8 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/gorilla/mux"
 
 	"projects/GoLang-Interns-2022/authorbook/driver"
 	"projects/GoLang-Interns-2022/authorbook/http/authorhttp"
@@ -11,9 +15,6 @@ import (
 	"projects/GoLang-Interns-2022/authorbook/service/bookservice"
 	"projects/GoLang-Interns-2022/authorbook/store/author"
 	"projects/GoLang-Interns-2022/authorbook/store/book"
-
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/gorilla/mux"
 )
 
 func main() {
@@ -39,6 +40,8 @@ func main() {
 	r.HandleFunc("/book", bookHandler.Post).Methods("POST")
 	r.HandleFunc("/book/{id}", bookHandler.Put).Methods("PUT")
 	r.HandleFunc("/book/{id}", bookHandler.Delete).Methods("DELETE")
+
+	fmt.Println("server started...")
 
 	err := http.ListenAndServe(":8000", r)
 	if err != nil {

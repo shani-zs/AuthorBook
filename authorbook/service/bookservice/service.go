@@ -77,7 +77,8 @@ func (b BookService) GetBookByID(ctx context.Context, id int) (entities.Book, er
 
 // Post : checks the book before posting
 func (b BookService) Post(ctx context.Context, book *entities.Book) (entities.Book, error) {
-	if book.Title == "" || book.AuthorID < 0 || checkPublication(book.Publication) {
+	if book.Title == "" || book.AuthorID < 0 || checkPublication(book.Publication) ||
+		!checkPublishedDate(book.PublishedDate) {
 		return entities.Book{}, errors.New("invalid constraints")
 	}
 
@@ -104,26 +105,38 @@ func (b BookService) Put(ctx context.Context, book *entities.Book, id int) (enti
 		return entities.Book{}, errors.New("invalid constraints")
 	}
 
+	author, err := b.authorService.IncludeAuthor(ctx, book.AuthorID)
+	if err != nil {
+		return entities.Book{}, err
+	}
+
 	count, err := b.bookService.Put(ctx, book, id)
 	if err != nil || count <= 0 {
-		return entities.Book{}, errors.New("does not exist")
+		return entities.Book{}, errors.New("book does not exist")
 	}
+
+	book.Author = author
+	book.BookID = id
 
 	return *book, nil
 }
 
 // Delete : checks before deleting a book
-func (b BookService) Delete(ctx context.Context, id int) (int, error) {
+func (b BookService) Delete(ctx context.Context, id int) error {
 	if id < 0 {
-		return -1, nil
+		return errors.New("invalid id")
 	}
 
 	count, err := b.bookService.Delete(ctx, id)
-	if err != nil || count <= 0 {
-		return -1, errors.New("does not exist")
+	if err != nil {
+		return err
 	}
 
-	return count, nil
+	if count <= 0 {
+		return errors.New("book does not exist")
+	}
+
+	return nil
 }
 
 // checkPublication : validates publication
@@ -145,7 +158,7 @@ func checkPublishedDate(publishedDate string) bool {
 		return false
 	case month <= 0 || month > 12:
 		return false
-	case year <= 1870 || year > 2022:
+	case year < 1870 || year > 2022:
 		return false
 	}
 

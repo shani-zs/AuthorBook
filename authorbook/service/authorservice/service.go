@@ -57,17 +57,21 @@ func (s AuthorService) Put(ctx context.Context, a entities.Author, id int) (enti
 }
 
 // Delete : Deletes the author at particular id
-func (s AuthorService) Delete(ctx context.Context, id int) (int, error) {
+func (s AuthorService) Delete(ctx context.Context, id int) error {
 	if id < 0 {
-		return 0, errors.New("invalid id")
+		return errors.New("invalid id")
 	}
 
-	countRows, err := s.datastore.Delete(ctx, id)
-	if err != nil || countRows <= 0 {
-		return 0, errors.New("does not exist")
+	count, err := s.datastore.Delete(ctx, id)
+	if err != nil {
+		return err
 	}
 
-	return countRows, nil
+	if count <= 0 {
+		return errors.New("author does not exist")
+	}
+
+	return nil
 }
 
 // checkDob : validates the DOB

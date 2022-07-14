@@ -50,15 +50,15 @@ func (s Store) Put(ctx context.Context, author entities.Author, id int) (int, er
 func (s Store) Delete(ctx context.Context, id int) (int, error) {
 	res, err := s.DB.ExecContext(ctx, "delete from author where author_id=?", id)
 	if err != nil {
-		return 0, err
+		return -1, err
 	}
 
-	count, err := res.RowsAffected()
+	ra, err := res.RowsAffected()
 	if err != nil {
-		return int(count), err
+		return -1, err
 	}
 
-	return int(count), nil
+	return int(ra), nil
 }
 
 // IncludeAuthor : checks whether an author exists or not if exists then it returns the author detail

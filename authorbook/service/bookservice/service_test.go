@@ -24,22 +24,22 @@ func TestGetAllBook(t *testing.T) {
 		title         string
 		includeAuthor string
 
-		expected   []entities.Book
-		expetedErr error
+		expected    []entities.Book
+		expectedErr error
 	}{
 		{desc: "getting all books", title: "", includeAuthor: "", expected: []entities.Book{},
-			expetedErr: errors.New("empty")},
+			expectedErr: errors.New("empty")},
 		{desc: "getting book with author and particular", title: "book two", includeAuthor: "",
-			expected: []entities.Book{}, expetedErr: errors.New("empty"),
+			expected: []entities.Book{}, expectedErr: errors.New("empty"),
 		},
 		{desc: "getting book with author and particular title", title: "book", includeAuthor: "true",
-			expected: []entities.Book{}, expetedErr: errors.New("empty"),
+			expected: []entities.Book{}, expectedErr: errors.New("empty"),
 		},
 	}
 
 	for _, tc := range Testcases {
-		mockBookStore.EXPECT().GetAllBook(context.TODO()).Return(tc.expected, tc.expetedErr).AnyTimes()
-		mockBookStore.EXPECT().GetBooksByTitle(context.TODO(), tc.title).Return(tc.expected, tc.expetedErr).AnyTimes()
+		mockBookStore.EXPECT().GetAllBook(context.TODO()).Return(tc.expected, tc.expectedErr).AnyTimes()
+		mockBookStore.EXPECT().GetBooksByTitle(context.TODO(), tc.title).Return(tc.expected, tc.expectedErr).AnyTimes()
 
 		books, _ := mock.GetAllBook(context.TODO(), tc.title, tc.includeAuthor)
 
@@ -189,9 +189,9 @@ func TestDelete(t *testing.T) {
 			mockBookStore.EXPECT().Delete(context.TODO(), tc.inputID).Return(tc.expectedID, tc.expectedErr)
 		}
 
-		id, _ := mock.Delete(context.TODO(), tc.inputID)
+		err := mock.Delete(context.TODO(), tc.inputID)
 
-		if !reflect.DeepEqual(id, tc.expectedID) {
+		if !reflect.DeepEqual(err, tc.expectedErr) {
 			t.Errorf("failed for %v\n", tc.desc)
 		}
 	}

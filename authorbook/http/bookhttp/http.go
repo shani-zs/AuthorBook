@@ -44,6 +44,7 @@ func (h BookHandler) GetAllBook(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	w.Header().Set("content-type", "json/application")
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(data)
 }
@@ -76,6 +77,7 @@ func (h BookHandler) GetBookByID(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	w.Header().Set("content-type", "json/application")
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(data)
 }
@@ -119,21 +121,26 @@ func (h BookHandler) Post(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	w.Header().Set("content-type", "json/application")
 	w.WriteHeader(http.StatusCreated)
 	_, _ = w.Write(data)
 }
 
 // Put : handle the request of updating a book
 func (h BookHandler) Put(w http.ResponseWriter, req *http.Request) {
+	var (
+		body []byte
+		data []byte
+		book entities.Book
+		id   int
+	)
+
 	body, err := io.ReadAll(req.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		_, _ = w.Write([]byte("could not read!"))
 
 		return
 	}
-
-	var book entities.Book
 
 	err = json.Unmarshal(body, &book)
 	if err != nil {
@@ -144,7 +151,15 @@ func (h BookHandler) Put(w http.ResponseWriter, req *http.Request) {
 	}
 
 	params := mux.Vars(req)
-	id, _ := strconv.Atoi(params["id"])
+
+	id, err = strconv.Atoi(params["id"])
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte(err.Error()))
+
+		return
+	}
+
 	ctx := req.Context()
 
 	book, err = h.bookH.Put(ctx, &book, id)
@@ -155,12 +170,12 @@ func (h BookHandler) Put(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	data, err := json.Marshal(book)
+	data, err = json.Marshal(book)
 	if err != nil {
-		log.Print(err)
 		return
 	}
 
+	w.Header().Set("content-type", "json/application")
 	w.WriteHeader(http.StatusCreated)
 	_, _ = w.Write(data)
 }
@@ -170,16 +185,15 @@ func (h BookHandler) Delete(w http.ResponseWriter, req *http.Request) {
 	params := mux.Vars(req)
 
 	id, err := strconv.Atoi(params["id"])
-	if err != nil || id < 0 {
+	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		log.Print(err)
-
+		_, _ = w.Write([]byte(err.Error()))
 		return
 	}
 
 	ctx := req.Context()
 
-	_, err = h.bookH.Delete(ctx, id)
+	err = h.bookH.Delete(ctx, id)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		_, _ = w.Write([]byte(err.Error()))
@@ -189,4 +203,6 @@ func (h BookHandler) Delete(w http.ResponseWriter, req *http.Request) {
 
 	w.WriteHeader(http.StatusNoContent)
 	_, _ = w.Write([]byte("successfully deleted"))
+
+	return
 }
