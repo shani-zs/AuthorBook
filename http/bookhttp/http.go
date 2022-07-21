@@ -21,8 +21,8 @@ func New(bookS service.BookService) BookHandler {
 
 // GetAllBook : handles the request of getting all books
 func (h BookHandler) GetAllBook(ctx *gofr.Context) (interface{}, error) {
-	title := ctx.Request().URL.Query().Get("title")
-	includeAuthor := ctx.Request().URL.Query().Get("includeAuthor")
+	includeAuthor := ctx.Param("includeAuthor")
+	title := ctx.Param("title")
 
 	books, err := h.bookH.GetAllBook(ctx, title, includeAuthor)
 	if err != nil {

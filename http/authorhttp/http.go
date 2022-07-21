@@ -4,6 +4,7 @@ import (
 	"developer.zopsmart.com/go/gofr/pkg/gofr"
 	"encoding/json"
 	"io"
+	"log"
 	"strconv"
 
 	"projects/GoLang-Interns-2022/authorbook/entities"
@@ -36,9 +37,10 @@ func (h AuthorHandler) Post(c *gofr.Context) (interface{}, error) {
 
 	a, err := h.authorService.Post(c, author)
 	if err != nil {
+		log.Print("3")
 		return nil, err
 	}
-
+	log.Print("4")
 	return a, nil
 
 }
